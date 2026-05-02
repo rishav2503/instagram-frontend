@@ -506,6 +506,7 @@ export default function App() {
   };
 
   const handleLike = async (postId) => {
+    console.log("LIKE CLICKED:", postId);
   try {
     const res = await fetch(`${apiURL}/like`, {
       method: "PUT",
