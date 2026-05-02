@@ -346,7 +346,17 @@ const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, h
                 
                 <div className="p-6">
                   <div className="flex items-center gap-6 mb-4">
-                    <Heart className="text-slate-800 hover:text-rose-500 transition-colors cursor-pointer active:scale-125" />
+                    <Heart
+                      onClick={() => handleLike(post._id)}
+                      className={`cursor-pointer active:scale-125 ${
+                        post.likes?.includes(user?._id)
+                          ? "text-rose-500"
+                          : "text-slate-800 hover:text-rose-500"
+                      }`}
+                    />
+                    <p className="text-sm font-bold mt-2">
+                      {post.likes?.length || 0} likes
+                    </p>
                     <MessageCircle className="text-slate-800 hover:text-blue-500 transition-colors cursor-pointer active:scale-125" />
                   </div>
                   <div className="flex gap-3 items-baseline">
@@ -494,6 +504,30 @@ export default function App() {
       if (res.ok) setPosts(prev => prev.filter(p => p._id !== postId));
     } catch (err) { setError("Delete failed."); }
   };
+
+  const handleLike = async (postId) => {
+  try {
+    const res = await fetch(`${apiURL}/like`, {
+      method: "PUT",
+      headers: {
+        ...getHeaders(true),
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ postId })
+    });
+
+    if (res.ok) {
+      const updatedPost = await res.json();
+
+      // update UI instantly
+      setPosts(prev =>
+        prev.map(p => (p._id === postId ? updatedPost : p))
+      );
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
 
   const handleLogout = () => {
     localStorage.removeItem('token');
