@@ -6,7 +6,7 @@ import {
   ArrowRight, X, Layout, Sparkles, Wand2, Zap, MessageSquareQuote
 } from 'lucide-react';
 
-const DEFAULT_API_URL = "https://skier-aneurism-evoke.ngrok-free.dev";
+const DEFAULT_API_URL = "https://instagram-backend-hswx.onrender.com";
 const GEMINI_API_KEY = ""; // Environment provides this at runtime
 
 /**
