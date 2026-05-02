@@ -542,7 +542,7 @@ export default function App() {
                <button onClick={() => setShowSettings(false)} className="p-2 text-slate-400 hover:text-slate-900"><X size={20}/></button>
              </div>
              <p className="text-sm text-slate-500 mb-6 font-medium leading-relaxed">
-               Paste your current <span className="text-blue-600 font-bold">Ngrok Forwarding URL</span> below.
+               Paste your current <span className="text-blue-600 font-bold">backend url</span> below.
              </p>
              <InputField icon={Globe} type="text" placeholder="https://....ngrok-free.dev" value={apiURL} onChange={(e) => setApiURL(e.target.value)} />
              <div className="mt-6">
