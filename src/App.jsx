@@ -151,7 +151,7 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
   </div>
 );
 
-const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL }) => {
+const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike }) => {
   const [aiLoading, setAiLoading] = useState(false);
   const [activeAiCommentId, setActiveAiCommentId] = useState(null);
 
@@ -564,6 +564,7 @@ export default function App() {
           setPostData={setPostData}
           loading={loading}
           apiURL={apiURL}
+          handleLike={handleLike}
         />
       )}
       
