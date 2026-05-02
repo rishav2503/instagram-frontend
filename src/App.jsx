@@ -6,7 +6,7 @@ import {
   ArrowRight, X, Layout, Sparkles, Wand2, Zap, MessageSquareQuote
 } from 'lucide-react';
 
-const DEFAULT_API_URL = "https://instagram-backend-hswx.onrender.com";
+const DEFAULT_API_URL = "https://skier-aneurism-evoke.ngrok-free.dev";
 const GEMINI_API_KEY = ""; // Environment provides this at runtime
 
 /**
@@ -120,7 +120,7 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
             <AlertCircle size={14} /> Backend Issue
           </div>
           <p className="text-xs text-red-500 font-medium">{error}</p>
-          <a href={apiURL} target="_blank" rel="noreferrer" className="text-[10px] bg-red-600 text-white font-bold py-2 rounded-xl text-center shadow-lg">1. Authorize Ngrok</a>
+          <a href={apiURL} target="_blank" rel="noreferrer" className="text-[10px] bg-red-600 text-white font-bold py-2 rounded-xl text-center shadow-lg">1. Backend not connected</a>
         </div>
       )}
 
@@ -405,7 +405,7 @@ export default function App() {
         handleLogout();
       }
     } catch (err) {
-      setError("Backend unreachable. Check your Ngrok URL in settings.");
+      setError("Backend unreachable. Check your backened server URL in settings.");
     }
   }, [getHeaders, apiURL]);
 
