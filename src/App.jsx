@@ -177,11 +177,28 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
       const reader = new FileReader();
       reader.readAsDataURL(postData.image);
       reader.onload = async () => {
-        const base64 = reader.result;
-        const suggestion = await callGemini("Generate a cool, short social media caption for this image. Use emojis.", base64);
-        setPostData(prev => ({ ...prev, caption: suggestion.trim().replace(/^"|"$/g, '') }));
-        setAiLoading(false);
-      };
+  try {
+    const base64 = reader.result;
+
+    const suggestion = await Promise.race([
+      callGemini("Generate a cool, short social media caption for this image. Use emojis.", base64),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout")), 8000)
+      )
+    ]);
+
+    setPostData(prev => ({
+      ...prev,
+      caption: suggestion.trim().replace(/^"|"$/g, '')
+    }));
+
+  } catch (err) {
+    console.log("Gemini failed:", err);
+    alert("AI is slow or not responding ❌");
+  } finally {
+    setAiLoading(false); // 🔥 ALWAYS STOP LOADING
+  }
+};
     } catch (err) {
       console.error(err);
       setAiLoading(false);
@@ -192,7 +209,12 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
     if (!postData.caption) return;
     setAiLoading(true);
     try {
-      const suggestion = await callGemini(`Make this social media caption more engaging and exciting: "${postData.caption}"`);
+      const suggestion = await Promise.race([
+  callGemini(`Make this social media caption more engaging and exciting: "${postData.caption}"`),
+  new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("Timeout")), 8000)
+  )
+]);
       setPostData(prev => ({ ...prev, caption: suggestion.trim().replace(/^"|"$/g, '') }));
     } catch (err) {
       console.error(err);
@@ -536,18 +558,19 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
                 </div>
 
                 <div
-  className="w-full aspect-square bg-slate-50 overflow-hidden cursor-pointer relative group"
+  className="w-full bg-black flex items-center justify-center cursor-pointer relative group"
+  style={{ maxHeight: "600px" }}
   onDoubleClick={() => handleLike(post._id)}
 >
   <img
-  src={post.image?.startsWith("http") ? post.image : `${apiURL}${post.image}`}
-  className="w-full h-full object-cover"
-  alt="Post"
-  onError={(e) => {
-    e.target.onerror = null;
-    e.target.src = "https://dummyimage.com/600x600/cccccc/000000";
-  }}
-/>
+    src={post.image?.startsWith("http") ? post.image : `${apiURL}${post.image}`}
+    className="w-full h-full object-contain"
+    alt="Post"
+    onError={(e) => {
+      e.target.onerror = null;
+      e.target.src = "https://dummyimage.com/600x600/cccccc/000000";
+    }}
+  />
 
   {isLikedAnim && (
     <div className="absolute inset-0 flex items-center justify-center bg-black/20">
