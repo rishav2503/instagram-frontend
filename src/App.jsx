@@ -632,7 +632,6 @@ socketRef.current.on("new_post", (newPost) => {
       });
       if (res.ok) {
         setPostData({ caption: '', image: null });
-        fetchPosts();
         setView('feed');
       } else {
         setError(await res.text());
