@@ -236,8 +236,20 @@ const Dashboard = ({ user, profileUser, setProfileUser, view, setView, posts, fe
       </div>
 
       <div>
-        <h2 className="font-bold text-lg">{profileUser?.name}</h2>
+        <input
+  value={profileUser?.name || ""}
+  onChange={(e) =>
+    setProfileUser({ ...profileUser, name: e.target.value })
+  }
+  className="border px-2 py-1 rounded w-full"
+/>
         <p className="text-gray-500 text-sm">{profileUser?.email}</p>
+        <button
+  onClick={() => handleProfileUpdate(profileUser.name)}
+  className="mt-2 bg-blue-500 text-white px-3 py-1 rounded"
+>
+  Update Profile
+</button>
       </div>
     </div>
 
@@ -554,7 +566,11 @@ export default function App() {
   const [view, setView] = useState('login'); 
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || '');
-  console.log("TOKEN:", token);
+  useEffect(() => {
+  if (view === "profile") {
+    fetchProfile();
+  }
+}, [view]);
   const [posts, setPosts] = useState([]);
   const [likedPostId, setLikedPostId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -604,6 +620,27 @@ export default function App() {
   socketRef.current.on("delete_post", (postId) => {
     setPosts(prev => prev.filter(p => p._id !== postId));
   });
+  // 🔥 PROFILE REAL-TIME UPDATE
+socketRef.current.on("profile_updated", (updatedUser) => {
+  // update logged user
+  setUser(prev =>
+    prev && prev._id === updatedUser._id ? updatedUser : prev
+  );
+
+  // update profile page
+  setProfileUser(prev =>
+    prev && prev._id === updatedUser._id ? updatedUser : prev
+  );
+
+  // update posts (username change)
+  setPosts(prev =>
+    prev.map(post =>
+      post.userId?._id === updatedUser._id
+        ? { ...post, userId: updatedUser }
+        : post
+    )
+  );
+});
 
   return () => socketRef.current.disconnect();
 }, [token, apiURL]); 
@@ -623,7 +660,7 @@ export default function App() {
       if (res.ok) {
         const data = await res.json();
         setUser(data);
-        setView('feed');
+        setProfileUser(data);
       } else {
         handleLogout();
       }
@@ -731,6 +768,7 @@ export default function App() {
 
     // ✅ remove from UI instantly
     setPosts(prev => prev.filter(p => p._id !== postId));
+    await fetchPosts();
 
   } catch (err) {
     console.log(err);
@@ -772,6 +810,7 @@ const handleLike = async (postId) => {
 
   // 🔥 4. stop animation
   setTimeout(() => setLikedPostId(null), 500);
+  await fetchPosts();
 };
 const handleComment = async (postId, text) => {
   if (!text) return;
@@ -793,6 +832,27 @@ const handleComment = async (postId, text) => {
     );
   } catch (err) {
     console.error(err);
+  }
+};
+const handleProfileUpdate = async (name) => {
+  try {
+    await fetchPosts();
+    const res = await fetch(`${apiURL}/update-profile`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ name })
+    });
+
+    const data = await res.json();
+
+    setUser(data);
+    setProfileUser(data);
+
+  } catch (err) {
+    console.log(err);
   }
 };
   const handleLogout = () => {
