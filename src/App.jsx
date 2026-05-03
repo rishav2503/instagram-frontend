@@ -225,7 +225,65 @@ const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, h
       </nav>
 
       <main className="max-w-2xl mx-auto py-8 px-4">
-        {view === 'create' ? (
+        
+        {view === 'profile' ? (
+  <div className="bg-white p-6 rounded-2xl shadow">
+
+    {/* USER INFO */}
+    <div className="flex items-center gap-4 mb-6">
+      <div className="w-14 h-14 rounded-full bg-blue-500 text-white flex items-center justify-center text-xl font-bold">
+        {profileUser?.name?.[0]?.toUpperCase()}
+      </div>
+
+      <div>
+        <h2 className="font-bold text-lg">{profileUser?.name}</h2>
+        <p className="text-gray-500 text-sm">{profileUser?.email}</p>
+      </div>
+    </div>
+
+    {/* POSTS */}
+    <h3 className="font-bold mb-3">Posts</h3>
+
+    <div className="space-y-4">
+      {posts
+        .filter(p => p.userId?._id === profileUser?._id)
+        .map(post => (
+          <div key={post._id} className="border rounded p-3">
+
+            <img
+              src={
+                post.image?.startsWith("http")
+                  ? post.image
+                  : `${apiURL}${post.image}`
+              }
+              className="w-full h-48 object-cover rounded"
+            />
+
+            <p className="mt-2 text-sm">{post.caption}</p>
+
+            {/* DELETE BUTTON (only own posts) */}
+            {user?._id === profileUser?._id && (
+              <button
+                onClick={() => handleDeletePost(post._id)}
+                className="text-red-500 text-sm mt-2"
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        ))}
+    </div>
+
+    {/* BACK BUTTON */}
+    <button
+      onClick={() => setView('feed')}
+      className="mt-4 text-blue-500"
+    >
+      ← Back
+    </button>
+
+  </div>
+) : view === 'create' ? (
           <div className="bg-white p-8 rounded-[2rem] shadow-xl border border-slate-100 animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-black flex items-center gap-3">
@@ -379,9 +437,15 @@ const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, h
                   </div>
                   {/* USER + CAPTION */}
 <div className="flex gap-3 items-baseline">
-  <span className="font-black text-sm text-slate-900">
-    {post.userId?.name}
-  </span>
+  <span
+  onClick={() => {
+    setProfileUser(post.userId);   // store clicked user
+    setView('profile');            // open profile page
+  }}
+  className="font-bold text-sm text-slate-900 cursor-pointer"
+>
+  {post.userId?.name}
+</span>
 
   <p className="text-sm text-slate-700">
     {post.caption}
@@ -482,7 +546,9 @@ onKeyDown={(e) => {
  */
 
 export default function App() {
+  const [view, setView] = useState('feed');
   const socketRef = useRef(null);
+  const [profileUser, setProfileUser] = useState(null);
   const [activePostId, setActivePostId] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
   const [apiURL, setApiURL] = useState(DEFAULT_API_URL);
