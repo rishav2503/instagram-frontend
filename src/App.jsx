@@ -519,6 +519,14 @@ export default function App() {
       prev.map(p => p._id === updatedPost._id ? updatedPost : p)
     );
   });
+  // 🔥 REAL-TIME NEW POST
+socketRef.current.on("new_post", (newPost) => {
+  setPosts(prev => {
+    // avoid duplicate
+    if (prev.find(p => p._id === newPost._id)) return prev;
+    return [newPost, ...prev];
+  });
+});
 
   return () => socketRef.current.disconnect();
 }, [apiURL]);
