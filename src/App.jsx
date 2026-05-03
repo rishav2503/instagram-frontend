@@ -485,7 +485,7 @@ export default function App() {
   const socketRef = useRef(null);
   const [activePostId, setActivePostId] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
-  const [apiURL, setApiURL] = useState(localStorage.getItem('api_url') || DEFAULT_API_URL);
+  const [apiURL, setApiURL] = useState(DEFAULT_API_URL);
   const [view, setView] = useState('login'); 
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || '');
@@ -500,39 +500,42 @@ export default function App() {
   const [postData, setPostData] = useState({ caption: '', image: null });
 
   useEffect(() => {
-  socketRef.current = io(apiURL); // your backend URL
+  if (!token) return; // ✅ VERY IMPORTANT
+
+  socketRef.current = io(apiURL);
 
   socketRef.current.on("connect", () => {
     console.log("Socket connected:", socketRef.current.id);
+
+    // 🔥 ALWAYS SYNC POSTS
+    fetchPosts();
   });
 
-  // 🔥 LIVE COMMENT UPDATE
+  socketRef.current.on("new_post", (newPost) => {
+    setPosts(prev => {
+      if (prev.find(p => p._id === newPost._id)) return prev;
+      return [newPost, ...prev];
+    });
+  });
+
+  socketRef.current.on("update-like", (updatedPost) => {
+    setPosts(prev =>
+      prev.map(p => p._id === updatedPost._id ? updatedPost : p)
+    );
+  });
+
   socketRef.current.on("new-comment", (updatedPost) => {
     setPosts(prev =>
       prev.map(p => p._id === updatedPost._id ? updatedPost : p)
     );
   });
 
-  // 🔥 LIVE LIKE UPDATE
-  socketRef.current.on("update-like", (updatedPost) => {
-    setPosts(prev =>
-      prev.map(p => p._id === updatedPost._id ? updatedPost : p)
-    );
+  socketRef.current.on("delete_post", (postId) => {
+    setPosts(prev => prev.filter(p => p._id !== postId));
   });
-  // 🔥 REAL-TIME NEW POST
-socketRef.current.on("new_post", (newPost) => {
-  setPosts(prev => {
-    // avoid duplicate
-    if (prev.find(p => p._id === newPost._id)) return prev;
-    return [newPost, ...prev];
-  });
-});
-socketRef.current.on("delete_post", (postId) => {
-
-});
 
   return () => socketRef.current.disconnect();
-}, [apiURL]);
+}, [token, apiURL]); 
 
 
   useEffect(() => { localStorage.setItem('api_url', apiURL); }, [apiURL]);
@@ -564,7 +567,7 @@ socketRef.current.on("delete_post", (postId) => {
       const res = await fetch(`${apiURL}/posts`, { headers: getHeaders(false) });
       if (res.ok) {
         const data = await res.json();
-        setPosts(data);
+        setPosts(Array.isArray(data) ? data : []);
       }
     } catch (err) {
       setError("Failed to load feed.");
@@ -650,7 +653,12 @@ socketRef.current.on("delete_post", (postId) => {
         method: 'DELETE',
         headers: getHeaders()
       });
-      if (res.ok) setPosts(prev => prev.filter(p => p._id !== postId));
+      if (res.ok) {
+  // 🔥 INSTANT UI UPDATE (important)
+  setPosts(prev => prev.filter(p => p._id !== postId));
+} else {
+  setError("Delete failed");
+}
     } catch (err) { setError("Delete failed."); }
   };
 
