@@ -304,7 +304,11 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
     className="cursor-pointer"
   >
     <img
-      src={post.image?.startsWith("http") ? post.image : `${apiURL}${post.image}`}
+      src={
+  post.image?.startsWith("http")
+    ? post.image
+    : `${import.meta.env.VITE_API_URL}${post.image}`
+}
       className="w-full h-60 object-cover rounded"
     />
   </div>
