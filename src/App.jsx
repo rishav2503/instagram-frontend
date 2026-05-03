@@ -152,7 +152,7 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
   </div>
 );
 
-const Dashboard = ({ user, setUser, profileUser, setProfileUser, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs}) => {
+const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUpdate, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs}) => {
   console.log("PROFILE USER:", profileUser);
   console.log("POSTS:", posts);
   const [aiLoading, setAiLoading] = useState(false);
@@ -864,8 +864,8 @@ const handleProfileUpdate = async (name) => {
     const data = await res.json();
 
     // ✅ VERY IMPORTANT (fix)
-    setUser(data);          // update navbar name
-    setProfileUser(data);   // update profile page
+    setUser(data.user);          // update navbar name
+    setProfileUser(data.user);   // update profile page
 
     alert("Profile updated ✅");
 
@@ -921,6 +921,7 @@ const handleProfileUpdate = async (name) => {
           setActivePostId={setActivePostId}
           commentInputs={commentInputs}
           setCommentInputs={setCommentInputs}
+          handleProfileUpdate={handleProfileUpdate}
         />
       )}
       
