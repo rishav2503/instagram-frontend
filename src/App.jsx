@@ -194,7 +194,10 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
     try {
       const suggestion = await callGemini(`Suggest a friendly, short, and relevant comment for this social media post caption: "${postCaption}"`);
       // Since we don't have a comment API in the provided snippet, we'll just show it in a custom alert/toast
-      alert(`✨ Gemini Suggests: ${suggestion.trim()}`);
+      setCommentInputs(prev => ({
+  ...prev,
+  [postId]: suggestion.trim()
+}));
     } catch (err) {
       console.error(err);
     } finally {
