@@ -212,10 +212,24 @@ const Dashboard = ({ user, profileUser, setProfileUser, view, setView, posts, fe
               <PlusCircle size={22} />
             </button>
             <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-[10px] text-white font-black">
+              <div
+  onClick={() => {
+    setProfileUser(user);
+    setView('profile');
+  }}
+  className="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-[10px] text-white font-black cursor-pointer"
+>
                 {user?.name?.[0]?.toUpperCase()}
               </div>
-              <span className="text-xs font-bold text-slate-700 hidden sm:block">{user?.name}</span>
+              <span
+  onClick={() => {
+    setProfileUser(user);   // set current user
+    setView('profile');     // open profile page
+  }}
+  className="text-xs font-bold text-slate-700 hidden sm:block cursor-pointer hover:text-blue-600"
+>
+  {user?.name}
+</span>
             </div>
             <button onClick={handleLogout} className="text-slate-300 hover:text-red-500 transition-colors">
               <LogOut size={20} />
