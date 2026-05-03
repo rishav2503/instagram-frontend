@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 const DEFAULT_API_URL = "https://instagram-backend-hswx.onrender.com";
-const GEMINI_API_KEY = ""; // Environment provides this at runtime
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_KEY;
 
 /**
  * GEMINI API UTILS
@@ -152,7 +152,7 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
   </div>
 );
 
-const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs}) => {
+const Dashboard = ({ user, profileUser, setProfileUser, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs}) => {
   const [aiLoading, setAiLoading] = useState(false);
   const [activeAiCommentId, setActiveAiCommentId] = useState(null);
 
@@ -546,7 +546,6 @@ onKeyDown={(e) => {
  */
 
 export default function App() {
-  const [view, setView] = useState('feed');
   const socketRef = useRef(null);
   const [profileUser, setProfileUser] = useState(null);
   const [activePostId, setActivePostId] = useState(null);
@@ -568,7 +567,9 @@ export default function App() {
   useEffect(() => {
   if (!token) return; // ✅ VERY IMPORTANT
 
+  if (!socketRef.current) {
   socketRef.current = io(apiURL);
+}
 
   socketRef.current.on("connect", () => {
     console.log("Socket connected:", socketRef.current.id);
@@ -729,6 +730,7 @@ export default function App() {
   };
 
 const handleLike = async (postId) => {
+  if (!user) return;
   // 🔥 1. animation trigger
   setLikedPostId(postId);
 
@@ -811,6 +813,8 @@ const handleComment = async (postId, text) => {
       ) : (
         <Dashboard 
           user={user}
+          profileUser={profileUser}
+          setProfileUser={setProfileUser}
           view={view}
           setView={setView}
           posts={posts}
