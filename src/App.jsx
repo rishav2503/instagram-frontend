@@ -151,7 +151,7 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
   </div>
 );
 
-const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike }) => {
+const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike, likedPostId }) => {
   const [aiLoading, setAiLoading] = useState(false);
   const [activeAiCommentId, setActiveAiCommentId] = useState(null);
 
@@ -304,7 +304,9 @@ const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, h
                 </div>
             )}
 
-            {posts.map((post) => (
+            {posts.map((post) => {
+              const isLikedAnim = likedPostId === post._id;
+              return (
               <article key={post._id} className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden animate-in fade-in duration-700 hover:shadow-lg transition-shadow">
                 <div className="p-5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -335,25 +337,37 @@ const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, h
                   </div>
                 </div>
 
-                <div className="w-full aspect-square bg-slate-50 overflow-hidden cursor-pointer relative group">
-                  <img 
-                    src={post.image} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" 
-                    alt="Post" 
-                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/600x600?text=AUTHORIZE+NGROK+ON+THIS+DEVICE'; }} 
-                  />
-                </div>
+                <div
+  className="w-full aspect-square bg-slate-50 overflow-hidden cursor-pointer relative group"
+  onDoubleClick={() => handleLike(post._id)}
+>
+  <img
+  src={post.image?.startsWith("http") ? post.image : `${apiURL}${post.image}`}
+  className="w-full h-full object-cover"
+  alt="Post"
+  onError={(e) => {
+    e.target.onerror = null;
+    e.target.src = "https://dummyimage.com/600x600/cccccc/000000";
+  }}
+/>
+
+  {isLikedAnim && (
+    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+      <span className="text-6xl text-rose-500 scale-150 transition-all duration-300">❤️</span>
+    </div>
+  )}
+</div>
                 
                 <div className="p-6">
                   <div className="flex items-center gap-6 mb-4">
                     <Heart
-                      onClick={() => handleLike(post._id)}
-                      className={`cursor-pointer active:scale-125 ${
-                        post.likes?.includes(user?._id)
-                          ? "text-rose-500"
-                          : "text-slate-800 hover:text-rose-500"
-                      }`}
-                    />
+  onClick={() => handleLike(post._id)}
+  className={`cursor-pointer active:scale-125 ${
+    post.likes?.some(id => id.toString() === user?._id?.toString())
+      ? "text-rose-500 fill-rose-500"
+      : "text-slate-800 hover:text-rose-500"
+  }`}
+/>
                     <p className="text-sm font-bold mt-2">
                       {post.likes?.length || 0} likes
                     </p>
@@ -365,7 +379,8 @@ const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, h
                   </div>
                 </div>
               </article>
-            ))}
+             );
+})}
           </div>
         )}
       </main>
@@ -388,6 +403,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [posts, setPosts] = useState([]);
+  const [likedPostId, setLikedPostId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showSettings, setShowSettings] = useState(false);
@@ -505,10 +521,27 @@ export default function App() {
     } catch (err) { setError("Delete failed."); }
   };
 
-  const handleLike = async (postId) => {
-    console.log("LIKE CLICKED:", postId);
+const handleLike = async (postId) => {
+  // 🔥 1. animation trigger
+  setLikedPostId(postId);
+
+  // 🔥 2. update UI instantly (IMPORTANT)
+  setPosts(prev =>
+    prev.map(post =>
+      post._id === postId
+        ? {
+            ...post,
+            likes: post.likes?.some(id => id.toString() === user._id)
+              ? post.likes.filter(id => id.toString() !== user._id)
+              : [...(post.likes || []), user._id]
+          }
+        : post
+    )
+  );
+
+  // 🔥 3. backend call (no delay)
   try {
-    const res = await fetch(`${apiURL}/like`, {
+    await fetch(`${apiURL}/like`, {
       method: "PUT",
       headers: {
         ...getHeaders(true),
@@ -516,26 +549,21 @@ export default function App() {
       },
       body: JSON.stringify({ postId })
     });
-
-    if (res.ok) {
-      const updatedPost = await res.json();
-
-      // update UI instantly
-      setPosts(prev =>
-        prev.map(p => (p._id === postId ? updatedPost : p))
-      );
-    }
   } catch (err) {
     console.log(err);
   }
-};
 
+  // 🔥 4. stop animation
+  setTimeout(() => setLikedPostId(null), 500);
+};
   const handleLogout = () => {
     localStorage.removeItem('token');
     setToken('');
     setUser(null);
     setView('login');
   };
+
+  
 
   return (
     <>
@@ -566,6 +594,7 @@ export default function App() {
           loading={loading}
           apiURL={apiURL}
           handleLike={handleLike}
+          likedPostId={likedPostId}
         />
       )}
       
