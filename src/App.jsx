@@ -276,29 +276,119 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
       {posts
         .filter(p => p.userId && profileUser && p.userId._id?.toString() === profileUser._id?.toString())
         .map(post => (
-          <div key={post._id} className="border rounded p-3">
+          <div key={post._id} className="bg-white rounded-2xl shadow border p-4">
 
-            <img
-              src={
-                post.image?.startsWith("http")
-                  ? post.image
-                  : `${apiURL}${post.image}`
-              }
-              className="w-full h-48 object-cover rounded"
-            />
+  {/* USER HEADER */}
+  <div className="flex justify-between items-center mb-2">
+    <span className="font-bold">{post.userId?.name}</span>
 
-            <p className="mt-2 text-sm">{post.caption}</p>
+    {user?._id === profileUser?._id && (
+      <button
+        onClick={() => handleDeletePost(post._id)}
+        className="text-red-500 text-sm"
+      >
+        Delete
+      </button>
+    )}
+  </div>
 
-            {/* DELETE BUTTON (only own posts) */}
-            {user?._id === profileUser?._id && (
-              <button
-                onClick={() => handleDeletePost(post._id)}
-                className="text-red-500 text-sm mt-2"
-              >
-                Delete
-              </button>
-            )}
-          </div>
+  {/* IMAGE */}
+  <div
+    onDoubleClick={() => handleLike(post._id)}
+    className="cursor-pointer"
+  >
+    <img
+      src={post.image?.startsWith("http") ? post.image : `${apiURL}${post.image}`}
+      className="w-full h-60 object-cover rounded"
+    />
+  </div>
+
+  {/* LIKE + COMMENT */}
+  <div className="flex items-center gap-4 mt-3">
+
+    {isLikedAnim && (
+  <div className="absolute inset-0 flex items-center justify-center">
+    ❤️
+  </div>
+)}
+
+    {/* ❤️ LIKE */}
+    <span
+      onClick={() => handleLike(post._id)}
+      className={`cursor-pointer text-xl ${
+        post.likes?.some(id => id.toString() === user?._id?.toString())
+          ? "text-red-500"
+          : "text-gray-600"
+      }`}
+    >
+      ❤️
+    </span>
+
+    {/* 💬 COMMENT */}
+    <span
+      onClick={() => setActivePostId(post._id)}
+      className="cursor-pointer"
+    >
+      💬
+    </span>
+
+  </div>
+
+  {/* LIKE COUNT */}
+  <p className="text-sm font-bold mt-1">
+    {post.likes?.length || 0} likes
+  </p>
+
+  {/* CAPTION */}
+  <p className="text-sm">
+    <b>{post.userId?.name}</b> {post.caption}
+  </p>
+
+  {/* COMMENTS PANEL */}
+  {activePostId === post._id && (
+    <div className="mt-2 border p-2 rounded">
+
+      <div className="flex justify-between">
+        <span className="font-bold text-sm">Comments</span>
+        <button onClick={() => setActivePostId(null)}>Back</button>
+      </div>
+
+      {post.comments?.map((c, i) => (
+  <p key={i}>
+    <b>{c.userId?.name || "User"}:</b> {c.text}
+  </p>
+))}
+
+      <div className="flex gap-2 mt-2">
+        <input
+          value={commentInputs[post._id] || ""}
+          onChange={(e) =>
+            setCommentInputs(prev => ({
+              ...prev,
+              [post._id]: e.target.value
+            }))
+          }
+          placeholder="Add comment"
+          className="border px-2 py-1 w-full"
+        />
+
+        <button
+          onClick={() => {
+            handleComment(post._id, commentInputs[post._id]);
+            setCommentInputs(prev => ({
+              ...prev,
+              [post._id]: ""
+            }));
+          }}
+        >
+          Post
+        </button>
+      </div>
+
+    </div>
+  )}
+
+</div>
         ))}
     </div>
 
