@@ -151,7 +151,7 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
   </div>
 );
 
-const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike, likedPostId, commentText, setCommentText, handleComment }) => {
+const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs}) => {
   const [aiLoading, setAiLoading] = useState(false);
   const [activeAiCommentId, setActiveAiCommentId] = useState(null);
 
@@ -371,7 +371,10 @@ const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, h
                     <p className="text-sm font-bold mt-2">
                       {post.likes?.length || 0} likes
                     </p>
-                    <MessageCircle className="text-slate-800 hover:text-blue-500 transition-colors cursor-pointer active:scale-125" />
+                    <MessageCircle
+  onClick={() => setActivePostId(post._id)}
+  className="text-slate-800 hover:text-blue-500 cursor-pointer active:scale-125"
+/>
                   </div>
                   {/* USER + CAPTION */}
 <div className="flex gap-3 items-baseline">
@@ -385,30 +388,61 @@ const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, h
 </div>
 
 {/* COMMENTS LIST */}
-<div className="mt-2">
-  {post.comments?.map((c, i) => (
-    <p key={i} className="text-sm text-gray-600">
-      💬 {c.text}
-    </p>
-  ))}
-</div>
+{/* ✅ COMMENT PANEL (ONLY WHEN CLICKED) */}
+{activePostId === post._id && (
+  <div className="mt-3 p-3 border rounded-xl bg-gray-50">
 
-{/* COMMENT INPUT */}
-<div className="mt-2 flex gap-2">
-  <input
-    value={commentText}
-    onChange={(e) => setCommentText(e.target.value)}
-    placeholder="Add a comment..."
-    className="border px-2 py-1 rounded w-full"
-  />
+    {/* HEADER */}
+    <div className="flex justify-between mb-2">
+      <span className="font-bold text-sm">Comments</span>
 
-  <button
-    onClick={() => handleComment(post._id)}
-    className="text-blue-500 font-bold"
-  >
-    Post
-  </button>
-</div>
+      <button
+        onClick={() => setActivePostId(null)}
+        className="text-red-500 text-sm"
+      >
+        Back
+      </button>
+    </div>
+
+    {/* COMMENTS LIST */}
+    <div className="max-h-40 overflow-y-auto space-y-1">
+      {post.comments?.map((c, i) => (
+        <p key={i} className="text-sm text-gray-700">
+          <span className="font-bold">{c.userId?.name || "User"}:</span> {c.text}
+        </p>
+      ))}
+    </div>
+
+    {/* INPUT */}
+    <div className="flex gap-2 mt-2">
+      <input
+        value={commentInputs[post._id] || ""}
+        onChange={(e) =>
+          setCommentInputs(prev => ({
+  ...prev,
+  [post._id]: e.target.value
+}))
+        }
+        placeholder="Add a comment..."
+        className="border px-2 py-1 rounded w-full"
+      />
+
+      <button
+        onClick={() => {
+          handleComment(post._id, commentInputs[post._id]);
+          setCommentInputs(prev => ({
+  ...prev,
+  [post._id]: ""
+}));
+        }}
+        className="text-blue-500 font-bold"
+      >
+        Post
+      </button>
+    </div>
+
+  </div>
+)}
                   
                 </div>
               </article>
@@ -431,12 +465,13 @@ const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, h
  */
 
 export default function App() {
+  const [activePostId, setActivePostId] = useState(null);
+  const [commentInputs, setCommentInputs] = useState({});
   const [apiURL, setApiURL] = useState(localStorage.getItem('api_url') || DEFAULT_API_URL);
   const [view, setView] = useState('login'); 
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [posts, setPosts] = useState([]);
-  const [commentText, setCommentText] = useState("");
   const [likedPostId, setLikedPostId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -445,6 +480,7 @@ export default function App() {
   // Form states
   const [authData, setAuthData] = useState({ name: '', email: '', password: '' });
   const [postData, setPostData] = useState({ caption: '', image: null });
+
 
   useEffect(() => { localStorage.setItem('api_url', apiURL); }, [apiURL]);
 
@@ -590,8 +626,8 @@ const handleLike = async (postId) => {
   // 🔥 4. stop animation
   setTimeout(() => setLikedPostId(null), 500);
 };
-const handleComment = async (postId) => {
-  if (!commentText) return;
+const handleComment = async (postId, text) => {
+  if (!text) return;
 
   try {
     const res = await fetch(`${apiURL}/comment`, {
@@ -600,7 +636,7 @@ const handleComment = async (postId) => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify({ postId, text: commentText })
+      body: JSON.stringify({ postId, text })
     });
 
     const updatedPost = await res.json();
@@ -608,8 +644,6 @@ const handleComment = async (postId) => {
     setPosts(prev =>
       prev.map(p => p._id === postId ? updatedPost : p)
     );
-
-    setCommentText("");
   } catch (err) {
     console.error(err);
   }
@@ -656,6 +690,10 @@ const handleComment = async (postId) => {
           commentText={commentText}
           setCommentText={setCommentText}
           handleComment={handleComment}
+          activePostId={activePostId}
+          setActivePostId={setActivePostId}
+          commentInputs={commentInputs}
+          setCommentInputs={setCommentInputs}
         />
       )}
       
