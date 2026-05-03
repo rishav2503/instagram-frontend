@@ -376,6 +376,28 @@ const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, h
                   <div className="flex gap-3 items-baseline">
                     <span className="font-black text-sm text-slate-900">{post.userId?.name}</span>
                     <p className="text-sm text-slate-700 leading-relaxed font-medium">{post.caption}</p>
+                    <div className="mt-2 flex gap-2">
+  <input
+    value={commentText}
+    onChange={(e) => setCommentText(e.target.value)}
+    placeholder="Add a comment..."
+    className="border px-2 py-1 rounded w-full"
+  />
+  <div className="mt-2">
+  {post.comments?.map((c, i) => (
+    <p key={i} className="text-sm">
+      💬 {c.text}
+    </p>
+  ))}
+</div>
+
+  <button
+    onClick={() => handleComment(post._id)}
+    className="text-blue-500 font-bold"
+  >
+    Post
+  </button>
+</div>
                   </div>
                 </div>
               </article>
@@ -403,6 +425,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [posts, setPosts] = useState([]);
+  const [commentText, setCommentText] = useState("");
   const [likedPostId, setLikedPostId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -555,6 +578,30 @@ const handleLike = async (postId) => {
 
   // 🔥 4. stop animation
   setTimeout(() => setLikedPostId(null), 500);
+};
+const handleComment = async (postId) => {
+  if (!commentText) return;
+
+  try {
+    const res = await fetch(`${apiURL}/comment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token
+      },
+      body: JSON.stringify({ postId, text: commentText })
+    });
+
+    const updatedPost = await res.json();
+
+    setPosts(prev =>
+      prev.map(p => p._id === postId ? updatedPost : p)
+    );
+
+    setCommentText("");
+  } catch (err) {
+    console.error(err);
+  }
 };
   const handleLogout = () => {
     localStorage.removeItem('token');
