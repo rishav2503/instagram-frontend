@@ -373,23 +373,34 @@ const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, h
                     </p>
                     <MessageCircle className="text-slate-800 hover:text-blue-500 transition-colors cursor-pointer active:scale-125" />
                   </div>
-                  <div className="flex gap-3 items-baseline">
-                    <span className="font-black text-sm text-slate-900">{post.userId?.name}</span>
-                    <p className="text-sm text-slate-700 leading-relaxed font-medium">{post.caption}</p>
-                    <div className="mt-2 flex gap-2">
+                  {/* USER + CAPTION */}
+<div className="flex gap-3 items-baseline">
+  <span className="font-black text-sm text-slate-900">
+    {post.userId?.name}
+  </span>
+
+  <p className="text-sm text-slate-700">
+    {post.caption}
+  </p>
+</div>
+
+{/* COMMENTS LIST */}
+<div className="mt-2">
+  {post.comments?.map((c, i) => (
+    <p key={i} className="text-sm text-gray-600">
+      💬 {c.text}
+    </p>
+  ))}
+</div>
+
+{/* COMMENT INPUT */}
+<div className="mt-2 flex gap-2">
   <input
     value={commentText}
     onChange={(e) => setCommentText(e.target.value)}
     placeholder="Add a comment..."
     className="border px-2 py-1 rounded w-full"
   />
-  <div className="mt-2">
-  {post.comments?.map((c, i) => (
-    <p key={i} className="text-sm">
-      💬 {c.text}
-    </p>
-  ))}
-</div>
 
   <button
     onClick={() => handleComment(post._id)}
@@ -398,7 +409,7 @@ const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, h
     Post
   </button>
 </div>
-                  </div>
+                  
                 </div>
               </article>
              );
@@ -587,7 +598,7 @@ const handleComment = async (postId) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: token
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({ postId, text: commentText })
     });
