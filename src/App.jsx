@@ -717,18 +717,20 @@ export default function App() {
     finally { setLoading(false); }
   };
 
-  const handleDelete = async (postId) => {
+  const handleDeletePost = async (postId) => {
   try {
     const res = await fetch(`${apiURL}/delete-post/${postId}`, {
       method: "DELETE",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // ✅ VERY IMPORTANT
+        Authorization: `Bearer ${token}`,
       },
     });
 
     const data = await res.text();
-    console.log(data);
+    console.log("DELETE RESPONSE:", data);
+
+    // ✅ remove from UI instantly
+    setPosts(prev => prev.filter(p => p._id !== postId));
 
   } catch (err) {
     console.log(err);
