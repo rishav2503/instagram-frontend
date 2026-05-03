@@ -527,6 +527,9 @@ socketRef.current.on("new_post", (newPost) => {
     return [newPost, ...prev];
   });
 });
+socketRef.current.on("delete_post", (postId) => {
+
+});
 
   return () => socketRef.current.disconnect();
 }, [apiURL]);
