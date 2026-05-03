@@ -536,7 +536,20 @@ export default function App() {
     }
   }, [getHeaders, apiURL]);
 
-  useEffect(() => { if (token) { fetchProfile(); fetchPosts(); } }, [token, fetchProfile, fetchPosts]);
+  useEffect(() => {
+  if (!token) return;
+
+  fetchProfile();
+  fetchPosts();
+
+  // 🔥 auto refresh every 3 seconds
+  const interval = setInterval(() => {
+    fetchPosts();
+  }, 3000);
+
+  return () => clearInterval(interval);
+
+}, [token, fetchProfile, fetchPosts]);
 
   const handleAuth = async (e, type) => {
     e.preventDefault();
