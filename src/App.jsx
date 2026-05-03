@@ -7,7 +7,7 @@ import {
   ArrowRight, X, Layout, Sparkles, Wand2, Zap, MessageSquareQuote
 } from 'lucide-react';
 
-const DEFAULT_API_URL = "https://instagram-backend-hswx.onrender.com";
+const DEFAULT_API_URL = import.meta.env.VITE_API_URL;
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_KEY;
 
 /**
@@ -568,7 +568,10 @@ export default function App() {
   if (!token) return; // ✅ VERY IMPORTANT
 
   if (!socketRef.current) {
-  socketRef.current = io(apiURL);
+  socketRef.current = io(apiURL, {
+  transports: ["websocket"],
+  withCredentials: true
+});
 }
 
   socketRef.current.on("connect", () => {
