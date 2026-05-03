@@ -151,7 +151,7 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
   </div>
 );
 
-const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike, likedPostId }) => {
+const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike, likedPostId, commentText, setCommentText, handleComment }) => {
   const [aiLoading, setAiLoading] = useState(false);
   const [activeAiCommentId, setActiveAiCommentId] = useState(null);
 
@@ -653,6 +653,9 @@ const handleComment = async (postId) => {
           apiURL={apiURL}
           handleLike={handleLike}
           likedPostId={likedPostId}
+          commentText={commentText}
+          setCommentText={setCommentText}
+          handleComment={handleComment}
         />
       )}
       
