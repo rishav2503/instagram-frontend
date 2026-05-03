@@ -24,7 +24,7 @@ const retryWithBackoff = async (fn, retries = 5, delay = 1000) => {
 };
 
 const callGemini = async (prompt, imageBase64 = null) => {
-  const model = "gemini-2.5-flash-preview-09-2025";
+  const model = "gemini-1.5-flash";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
   
   const parts = [{ text: prompt }];
@@ -41,14 +41,26 @@ const callGemini = async (prompt, imageBase64 = null) => {
     contents: [{ parts }]
   };
 
-  const request = () => fetch(url, {
+  const request = async () => {
+  const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
-  }).then(res => res.json());
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    console.log("Gemini error:", data);
+    throw new Error("Gemini API failed");
+  }
+
+  return data;
+};
 
   const result = await retryWithBackoff(request);
-  return result.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't think of anything... ✨";
+  const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+return text || "No response from Gemini";
 };
 
 /**
