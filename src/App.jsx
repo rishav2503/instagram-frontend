@@ -687,8 +687,6 @@ const handleComment = async (postId, text) => {
           apiURL={apiURL}
           handleLike={handleLike}
           likedPostId={likedPostId}
-          commentText={commentText}
-          setCommentText={setCommentText}
           handleComment={handleComment}
           activePostId={activePostId}
           setActivePostId={setActivePostId}
