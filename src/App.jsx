@@ -274,8 +274,14 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
 
     <div className="space-y-4">
       {posts
-        .filter(p => p.userId && profileUser && p.userId._id?.toString() === profileUser._id?.toString())
+        .filter(p =>
+  p.userId &&
+  profileUser &&
+  p.userId?._id?.toString() === profileUser?._id?.toString()
+)
         .map(post => (
+          
+          
           <div key={post._id} className="bg-white rounded-2xl shadow border p-4">
 
   {/* USER HEADER */}
@@ -306,11 +312,7 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
   {/* LIKE + COMMENT */}
   <div className="flex items-center gap-4 mt-3">
 
-    {isLikedAnim && (
-  <div className="absolute inset-0 flex items-center justify-center">
-    ❤️
-  </div>
-)}
+    
 
     {/* ❤️ LIKE */}
     <span
@@ -389,7 +391,7 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
   )}
 
 </div>
-        ))}
+))}
     </div>
 
     {/* BACK BUTTON */}
@@ -954,8 +956,8 @@ const handleProfileUpdate = async (name) => {
     const data = await res.json();
 
     // ✅ VERY IMPORTANT (fix)
-    setUser(data.user);          // update navbar name
-    setProfileUser(data.user);   // update profile page
+    setUser(data);          // update navbar name
+    setProfileUser(data);   // update profile page
 
     alert("Profile updated ✅");
 
