@@ -554,6 +554,7 @@ export default function App() {
   const [view, setView] = useState('login'); 
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || '');
+  console.log("TOKEN:", token);
   const [posts, setPosts] = useState([]);
   const [likedPostId, setLikedPostId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -716,21 +717,23 @@ export default function App() {
     finally { setLoading(false); }
   };
 
-  const handleDeletePost = async (postId) => {
-    if (!window.confirm("Delete this post?")) return;
-    try {
-      const res = await fetch(`${apiURL}/delete-post/${postId}`, {
-        method: 'DELETE',
-        headers: getHeaders()
-      });
-      if (res.ok) {
-  // 🔥 INSTANT UI UPDATE (important)
-  setPosts(prev => prev.filter(p => p._id !== postId));
-} else {
-  setError("Delete failed");
-}
-    } catch (err) { setError("Delete failed."); }
-  };
+  const handleDelete = async (postId) => {
+  try {
+    const res = await fetch(`${apiURL}/delete-post/${postId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // ✅ VERY IMPORTANT
+      },
+    });
+
+    const data = await res.text();
+    console.log(data);
+
+  } catch (err) {
+    console.log(err);
+  }
+};
 
 const handleLike = async (postId) => {
   if (!user) return;
