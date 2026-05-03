@@ -153,6 +153,8 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
 );
 
 const Dashboard = ({ user, profileUser, setProfileUser, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs}) => {
+  console.log("PROFILE USER:", profileUser);
+  console.log("POSTS:", posts);
   const [aiLoading, setAiLoading] = useState(false);
   const [activeAiCommentId, setActiveAiCommentId] = useState(null);
 
@@ -272,7 +274,7 @@ const Dashboard = ({ user, profileUser, setProfileUser, view, setView, posts, fe
 
     <div className="space-y-4">
       {posts
-        .filter(p => p.userId?._id === profileUser?._id)
+        .filter(p => p.userId && profileUser && p.userId._id?.toString() === profileUser._id?.toString())
         .map(post => (
           <div key={post._id} className="border rounded p-3">
 
@@ -850,7 +852,6 @@ const handleComment = async (postId, text) => {
 };
 const handleProfileUpdate = async (name) => {
   try {
-    await fetchPosts();
     const res = await fetch(`${apiURL}/update-profile`, {
       method: "PUT",
       headers: {
@@ -862,8 +863,14 @@ const handleProfileUpdate = async (name) => {
 
     const data = await res.json();
 
+    // ✅ update UI
     setUser(data);
     setProfileUser(data);
+
+    // ✅ refresh posts (IMPORTANT)
+    await fetchPosts();
+
+    alert("Profile updated ✅");
 
   } catch (err) {
     console.log(err);
