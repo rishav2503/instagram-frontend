@@ -423,12 +423,28 @@ const Dashboard = ({ user, view, setView, posts, fetchPosts, handleCreatePost, h
   [post._id]: e.target.value
 }))
         }
+onKeyDown={(e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    if (!commentInputs[post._id]?.trim()) return;
+
+    handleComment(post._id, commentInputs[post._id]);
+    
+
+    setCommentInputs(prev => ({
+      ...prev,
+      [post._id]: ""
+    }));
+  }
+}
+        }
         placeholder="Add a comment..."
         className="border px-2 py-1 rounded w-full"
       />
 
       <button
         onClick={() => {
+          if (!commentInputs[post._id]?.trim()) return;
           handleComment(post._id, commentInputs[post._id]);
           setCommentInputs(prev => ({
   ...prev,
