@@ -7,7 +7,7 @@ import {
   ArrowRight, X, Layout, Sparkles, Wand2, Zap, MessageSquareQuote
 } from 'lucide-react';
 
-const DEFAULT_API_URL = import.meta.env.VITE_API_URL;
+const DEFAULT_API_URL = "https://instagram-backend-hswx.onrender.com";
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_KEY;
 
 /**
@@ -801,6 +801,9 @@ const handleComment = async (postId, text) => {
 
   return (
     <>
+    <h1 style={{ color: "red", textAlign: "center" }}>
+      TEST DEPLOY WORKING ✅
+    </h1>
       {!token ? (
         <AuthView 
           view={view}
