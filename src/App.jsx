@@ -480,8 +480,9 @@ onKeyDown={(e) => {
 /**
  * MAIN APP COMPONENT
  */
-const socketRef = useRef(null);
+
 export default function App() {
+  const socketRef = useRef(null);
   const [activePostId, setActivePostId] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
   const [apiURL, setApiURL] = useState(localStorage.getItem('api_url') || DEFAULT_API_URL);
@@ -570,7 +571,7 @@ export default function App() {
   // 🔥 auto refresh every 3 seconds
   
 
-  return () => clearInterval(interval);
+  
 
 }, [token, fetchProfile, fetchPosts]);
 
