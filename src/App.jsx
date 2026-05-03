@@ -1,3 +1,4 @@
+import { io } from "socket.io-client";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   LogOut, PlusCircle, Trash2, User as UserIcon, Image as ImageIcon,
@@ -479,7 +480,7 @@ onKeyDown={(e) => {
 /**
  * MAIN APP COMPONENT
  */
-
+const socketRef = useRef(null);
 export default function App() {
   const [activePostId, setActivePostId] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
@@ -496,6 +497,30 @@ export default function App() {
   // Form states
   const [authData, setAuthData] = useState({ name: '', email: '', password: '' });
   const [postData, setPostData] = useState({ caption: '', image: null });
+
+  useEffect(() => {
+  socketRef.current = io(apiURL); // your backend URL
+
+  socketRef.current.on("connect", () => {
+    console.log("Socket connected:", socketRef.current.id);
+  });
+
+  // 🔥 LIVE COMMENT UPDATE
+  socketRef.current.on("new-comment", (updatedPost) => {
+    setPosts(prev =>
+      prev.map(p => p._id === updatedPost._id ? updatedPost : p)
+    );
+  });
+
+  // 🔥 LIVE LIKE UPDATE
+  socketRef.current.on("update-like", (updatedPost) => {
+    setPosts(prev =>
+      prev.map(p => p._id === updatedPost._id ? updatedPost : p)
+    );
+  });
+
+  return () => socketRef.current.disconnect();
+}, [apiURL]);
 
 
   useEffect(() => { localStorage.setItem('api_url', apiURL); }, [apiURL]);
@@ -543,9 +568,7 @@ export default function App() {
   fetchPosts();
 
   // 🔥 auto refresh every 3 seconds
-  const interval = setInterval(() => {
-    fetchPosts();
-  }, 3000);
+  
 
   return () => clearInterval(interval);
 
