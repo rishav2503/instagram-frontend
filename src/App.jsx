@@ -191,6 +191,12 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
 const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handleProfileUpdate, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, API_URL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs, showSuggestions, setShowSuggestions, suggestedUsers, setSuggestedUsers}) => {
   console.log("PROFILE USER:", profileUser);
   console.log("POSTS:", posts);
+  const openProfile = (userData) => {
+  if (!userData) return;
+
+  setProfileUser(userData);
+  setView("profile");
+};
   const [aiLoading, setAiLoading] = useState(false);
   const [activeAiCommentId, setActiveAiCommentId] = useState(null);
 
@@ -313,13 +319,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
       </div>
 
       <div>
-        <input
-  value={profileUser?.name || ""}
-  onChange={(e) =>
-    setProfileUser({ ...profileUser, name: e.target.value })
-  }
-  className="border px-2 py-1 rounded w-full"
-/>
+        <h2 className="font-bold text-lg">{profileUser?.name}</h2>
         <p className="text-gray-500 text-sm">{profileUser?.email}</p>
         <p className="text-sm">
   Followers: {profileUser?.followers?.length || 0}
@@ -342,15 +342,17 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
 
   // 🔥 instant UI update
   setUser(prev => {
-    const isFollowing = prev.following.some(f => f._id === profileUser._id);
+  const isFollowing = prev.following.some(
+    f => (f._id || f) === profileUser._id
+  );
 
-    return {
-      ...prev,
-      following: isFollowing
-        ? prev.following.filter(f => f._id !== profileUser._id)
-        : [...prev.following, profileUser._id]
-    };
-  });
+  return {
+    ...prev,
+    following: isFollowing
+      ? prev.following.filter(f => (f._id || f) !== profileUser._id)
+      : [...prev.following, profileUser._id]
+  };
+});
 
   try {
     const res = await fetch(`${API_URL}/follow/${profileUser._id}`, {
@@ -371,7 +373,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
 }}
     className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
   >
-    {user?.following?.some(f => f._id === profileUser._id)
+    {user?.following?.some(f => (f._id || f) === profileUser._id)
       ? "Unfollow"
       : "Follow"}
   </button>
@@ -379,7 +381,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
     {/* POSTS */}
     <h3 className="font-bold mb-3">Posts</h3>
 
-    <div className="space-y-4">
+    <div className="grid grid-cols-2 gap-3">
       {posts
         .filter(p =>
   p.userId &&
@@ -389,7 +391,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
         .map(post => (
           
           
-          <div key={post._id} className="bg-white rounded-2xl shadow border p-4">
+          <div key={post._id} className="relative group">
 
   {/* USER HEADER */}
   <div className="flex justify-between items-center mb-2">
@@ -413,6 +415,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
     <img
   src={post.image}
   className="w-full h-60 object-cover rounded"
+  alt="Post"
 />
   </div>
 
@@ -610,7 +613,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
 
   // 🔥 instant UI update (no lag)
   setUser(prev => {
-    const isFollowing = prev.following.some(f => f._id === post.userId._id);
+    const isFollowing = prev.following.some(f => (f._id || f) === post.userId._id);
 
     return {
       ...prev,
@@ -648,7 +651,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
 }}
     className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-bold hover:bg-blue-600 transition"
   >
-    {user?.following?.some(f => f._id === post.userId._id)
+    {user?.following?.some(f => (f._id || f) === post.userId._id)
       ? "Unfollow"
       : "Follow"}
   </button>
@@ -704,10 +707,8 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
                   {/* USER + CAPTION */}
 <div className="flex gap-3 items-baseline">
   <span
-  onClick={() => {
-    setProfileUser(post.userId);   // store clicked user
-    setView('profile');            // open profile page
-  }}
+ 
+  onClick={() => openProfile(post.userId)}
   className="font-bold text-sm text-slate-900 cursor-pointer"
 >
   {post.userId?.name}
@@ -821,7 +822,12 @@ onKeyDown={(e) => {
         {suggestedUsers.map(u => (
           <div key={u._id} className="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
 
-            <span className="font-semibold">{u.name}</span>
+            <span
+  onClick={() => openProfile(u)}
+  className="font-semibold cursor-pointer hover:text-blue-600"
+>
+  {u.name}
+</span>
 
             <button
               onClick={async () => {
@@ -962,6 +968,9 @@ socketRef.current.on("follow_updated", ({ currentUser, targetUser }) => {
   setProfileUser(prev =>
     prev && prev._id === targetUser._id ? targetUser : prev
   );
+  if (profileUser?._id === targetUser._id) {
+  setProfileUser(targetUser);
+}
 
   // update posts
   setPosts(prev =>
