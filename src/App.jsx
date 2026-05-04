@@ -22,20 +22,55 @@ const retryWithBackoff = async (fn, retries = 5, delay = 1000) => {
     return retryWithBackoff(fn, retries - 1, delay * 2);
   }
 };
+const compressImage = (file) => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const MAX_WIDTH = 600;
+        const scaleSize = MAX_WIDTH / img.width;
+
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scaleSize;
+
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const compressed = canvas.toDataURL("image/jpeg", 0.6);
+        resolve(compressed);
+      };
+    };
+  });
+};
 const callGemini = async (prompt, image = null) => {
   try {
+    const compressed = image ? await compressImage(image) : null;
     const res = await fetch(`${DEFAULT_API_URL}/gemini`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
+      
       body: JSON.stringify({
         prompt,
-        image: image ? image.split(",")[1] : null
+        
+
+image: null
       }),
     });
 
-    const data = await res.json();
+    let data;
+try {
+  data = await res.json();
+} catch {
+  throw new Error("Server returned invalid response");
+}
 
     if (!res.ok) {
       console.log("Gemini backend error:", data);
