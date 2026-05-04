@@ -1009,14 +1009,6 @@ socketRef.current.on("follow_updated", ({ currentUser, targetUser }) => {
   setProfileUser(targetUser);
 }
 
-  // update posts
-  setPosts(prev =>
-    prev.map(post =>
-      post.userId?._id === targetUser._id
-        ? { ...post, userId: targetUser }
-        : post
-    )
-  ); 
 });
 
 
