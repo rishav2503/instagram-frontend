@@ -652,19 +652,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
       });
 
       // ✅ REMOVE POSTS IF UNFOLLOW
-      if (isUnfollow) {
-        setPosts(prev =>
-          prev.filter(p => {
-            const isFollowing = user.following?.some(
-              f => (f._id || f) === p.userId?._id
-            );
-
-            const isOwnPost = p.userId?._id === user._id;
-
-            return isFollowing || isOwnPost;
-          })
-        );
-      }
+      
 
       try {
         const res = await fetch(`${API_URL}/follow/${post.userId._id}`, {
