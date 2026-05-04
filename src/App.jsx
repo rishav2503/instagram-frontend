@@ -203,16 +203,13 @@ const [isPulling, setIsPulling] = useState(false);
 const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeAiCommentId, setActiveAiCommentId] = useState(null);
 
-  const [aiLoading, setAiLoading] = useState(false);
-const [activeAiCommentId, setActiveAiCommentId] = useState(null);
-
 // 🔥 ADD HERE (STEP 2 LOCATION)
 const [pullY, setPullY] = useState(0);
 const [isPulling, setIsPulling] = useState(false);
 const [isRefreshing, setIsRefreshing] = useState(false);
 
 const handleTouchStart = (e) => {
-  if (window.scrollY === 0) {
+  if (document.documentElement.scrollTop === 0) {
     setIsPulling(true);
     setPullY(e.touches[0].clientY);
   }
@@ -225,7 +222,7 @@ const handleTouchMove = (e) => {
   const diff = currentY - pullY;
 
   if (diff > 0 && diff < 150) {
-    document.body.style.transform = `translateY(${diff}px)`;
+    document.documentElement.style.transform = `translateY(${diff}px)`;
   }
 };
 
@@ -235,7 +232,7 @@ const handleTouchEnd = async (e) => {
   const endY = e.changedTouches[0].clientY;
   const diff = endY - pullY;
 
-  document.body.style.transform = "translateY(0px)";
+  document.documentElement.style.transform = "translateY(0px)";
   setIsPulling(false);
 
   if (diff > 80) {
@@ -244,7 +241,6 @@ const handleTouchEnd = async (e) => {
     setIsRefreshing(false);
   }
 };
-
   const handleMagicCaption = async () => {
   if (!postData.image) return;
 
