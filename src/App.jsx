@@ -402,7 +402,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
       src={
   post.image?.startsWith("http")
     ? post.image
-    : `${import.meta.env.VITE_API_URL}${post.image}`
+    : `${API_URL}${post.image}`
 }
       className="w-full h-60 object-cover rounded"
     />
