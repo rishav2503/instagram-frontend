@@ -921,25 +921,15 @@ export default function App() {
   socketRef.current.on("connect", () => {
     console.log("Socket connected:", socketRef.current.id);
 
-    // 🔥 ALWAYS SYNC POSTS
+    
     fetchPosts();
   });
 
   socketRef.current.on("new_post", (newPost) => {
   setPosts(prev => {
-    if (prev.find(p => p._id === newPost._id)) return prev;
-
-    
-    const isFollowing = user?.following?.some(
-      f => (f._id || f) === newPost.userId?._id
-    );
-
-    const isOwnPost = newPost.userId?._id === user?._id;
-
-    if (!isFollowing && !isOwnPost) return prev;
-
-    return [newPost, ...prev];
-  });
+  if (prev.find(p => p._id === newPost._id)) return prev;
+  return [newPost, ...prev];
+});
 });
 
   socketRef.current.on("update-like", (updatedPost) => {
@@ -1039,18 +1029,7 @@ socketRef.current.on("follow_updated", ({ currentUser, targetUser }) => {
       const res = await fetch(`${API_URL}/posts`, { headers: getHeaders(true) });
       if (res.ok) {
         const data = await res.json();
-        const filtered = (Array.isArray(data) ? data : []).filter(post => {
-  if (!user) return false; 
-
-  const followingIds = user.following?.map(f => f._id || f) || [];
-
-  const isFollowing = followingIds.includes(post.userId?._id);
-  const isOwnPost = post.userId?._id === user._id;
-
-  return isFollowing || isOwnPost;
-});
-
-setPosts(filtered);
+        setPosts(Array.isArray(data) ? data : []);
       }
     } catch (err) {
       setError("Failed to load feed.");
@@ -1134,9 +1113,11 @@ setPosts(filtered);
         body: formData
       });
       if (res.ok) {
-        setPostData({ caption: '', image: null });
-        setView('feed');
-      } else {
+  setPostData({ caption: '', image: null });
+  setView('feed');
+
+  await fetchPosts();   
+} else {
         setError(await res.text());
       }
     } catch (err) { setError("Post failed. Check server console."); }
