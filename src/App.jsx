@@ -265,6 +265,12 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
             MiniGram
           </h1>
           <div className="flex items-center gap-4">
+            <button
+  onClick={() => setShowSuggestions(true)}
+  className="w-10 h-10 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center hover:bg-purple-600 hover:text-white transition-all"
+>
+  <UserPlus size={20} />
+</button>
             <button onClick={() => setView('create')} className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all">
               <PlusCircle size={22} />
             </button>
@@ -792,6 +798,66 @@ onKeyDown={(e) => {
           </div>
         )}
       </main>
+
+      {/* 🔥 SUGGESTED USERS PANEL */}
+{showSuggestions && (
+  <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+
+    <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl">
+
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="font-bold text-lg">Discover Users</h2>
+        <button onClick={() => setShowSuggestions(false)}>
+          <X />
+        </button>
+      </div>
+
+      <div className="space-y-3 max-h-80 overflow-y-auto">
+
+        {suggestedUsers.length === 0 && (
+          <p className="text-gray-400 text-center">No users to follow</p>
+        )}
+
+        {suggestedUsers.map(u => (
+          <div key={u._id} className="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
+
+            <span className="font-semibold">{u.name}</span>
+
+            <button
+              onClick={async () => {
+                setSuggestedUsers(prev => prev.filter(x => x._id !== u._id));
+
+                try {
+                  const res = await fetch(`${API_URL}/follow/${u._id}`, {
+                    method: "PUT",
+                    headers: {
+                      Authorization: `Bearer ${token}`
+                    }
+                  });
+
+                  const data = await res.json();
+                  setUser(data.currentUser);
+
+                } catch (err) {
+                  console.log(err);
+                }
+              }}
+              className="px-3 py-1 bg-blue-500 text-white rounded-full text-sm"
+            >
+              Follow
+            </button>
+
+          </div>
+        ))}
+
+      </div>
+    </div>
+  </div>
+)}
+
+<footer className="py-10 text-center opacity-30 select-none flex items-center justify-center gap-4">
+  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+</footer>
       
       <footer className="py-10 text-center opacity-30 select-none flex items-center justify-center gap-4">
         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -813,6 +879,8 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [posts, setPosts] = useState([]);
+  const [suggestedUsers, setSuggestedUsers] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [likedPostId, setLikedPostId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -946,11 +1014,26 @@ socketRef.current.on("follow_updated", ({ currentUser, targetUser }) => {
     }
   }, [getHeaders, API_URL]);
 
+  const fetchSuggestedUsers = useCallback(async () => {
+  try {
+    const res = await fetch(`${API_URL}/users`, {
+      headers: getHeaders(true)
+    });
+
+    const data = await res.json();
+    setSuggestedUsers(data);
+
+  } catch (err) {
+    console.log(err);
+  }
+}, [API_URL, getHeaders]);
+
   useEffect(() => {
   if (!token) return;
 
   fetchProfile();
   fetchPosts();
+  fetchSuggestedUsers();
 
   // 🔥 auto refresh every 3 seconds
   
