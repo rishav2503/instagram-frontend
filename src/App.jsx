@@ -203,44 +203,8 @@ const [isPulling, setIsPulling] = useState(false);
 const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeAiCommentId, setActiveAiCommentId] = useState(null);
 
-// 🔥 ADD HERE (STEP 2 LOCATION)
-const [pullY, setPullY] = useState(0);
-const [isPulling, setIsPulling] = useState(false);
-const [isRefreshing, setIsRefreshing] = useState(false);
 
-const handleTouchStart = (e) => {
-  if (document.documentElement.scrollTop === 0) {
-    setIsPulling(true);
-    setPullY(e.touches[0].clientY);
-  }
-};
-
-const handleTouchMove = (e) => {
-  if (!isPulling) return;
-
-  const currentY = e.touches[0].clientY;
-  const diff = currentY - pullY;
-
-  if (diff > 0 && diff < 150) {
-    document.documentElement.style.transform = `translateY(${diff}px)`;
-  }
-};
-
-const handleTouchEnd = async (e) => {
-  if (!isPulling) return;
-
-  const endY = e.changedTouches[0].clientY;
-  const diff = endY - pullY;
-
-  document.documentElement.style.transform = "translateY(0px)";
-  setIsPulling(false);
-
-  if (diff > 80) {
-    setIsRefreshing(true);
-    await fetchPosts();
-    setIsRefreshing(false);
-  }
-};
+const handleTouchStart = (e)
   const handleMagicCaption = async () => {
   if (!postData.image) return;
 
@@ -307,6 +271,7 @@ const handleTouchEnd = async (e) => {
   return (
     <div
   className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20"
+  style={{ touchAction: "pan-y", overscrollBehavior: "contain" }}
   onTouchStart={handleTouchStart}
   onTouchMove={handleTouchMove}
   onTouchEnd={handleTouchEnd}
@@ -353,7 +318,12 @@ const handleTouchEnd = async (e) => {
         </div>
       </nav>
 
-      <main className="max-w-2xl mx-auto py-8 px-4">
+      <main
+  className="max-w-2xl mx-auto py-8 px-4"
+  onTouchStart={handleTouchStart}
+  onTouchMove={handleTouchMove}
+  onTouchEnd={handleTouchEnd}
+>
         {isRefreshing && (
   <div className="text-center mb-4">
     <span className="text-blue-500 font-bold animate-pulse">
