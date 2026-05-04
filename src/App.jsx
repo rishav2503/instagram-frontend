@@ -588,9 +588,6 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
               <article key={post._id} className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden animate-in fade-in duration-700 hover:shadow-lg transition-shadow">
                 <div className="p-5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <p className="font-bold text-slate-900 text-sm">
-                      {post.userId?.name || 'Anonymous'}
-                    </p>
                     {post.userId?._id !== user?._id && (
   <button
     onClick={async () => {
@@ -631,15 +628,37 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{new Date(post.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>
-                  <div className="flex gap-1">
-                    <button 
-                      onClick={() => handleAiComment(post._id, post.caption)}
-                      disabled={activeAiCommentId === post._id}
-                      className="p-2 text-slate-400 hover:text-violet-500 transition-all bg-slate-50 rounded-full border border-slate-100"
-                      title="AI Comment Suggestion"
-                    >
-                      {activeAiCommentId === post._id ? <Loader2 size={16} className="animate-spin"/> : <MessageSquareQuote size={16} />}
-                    </button>
+                  <div className="flex items-center gap-2">
+                    {post.userId?._id !== user?._id && (
+  <button
+    onClick={async () => {
+      try {
+        const res = await fetch(`${API_URL}/follow/${post.userId._id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const data = await res.json();
+
+        setUser(prev => ({
+          ...prev,
+          following: data.following
+        }));
+
+      } catch (err) {
+        console.log(err);
+      }
+    }}
+    className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-bold hover:bg-blue-600 transition"
+  >
+    {user?.following?.includes(post.userId._id)
+      ? "Unfollow"
+      : "Follow"}
+  </button>
+)}
                     {post.userId?._id === user?._id && (
                       <button onClick={() => handleDeletePost(post._id)} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all">
                         <Trash2 size={18} />
