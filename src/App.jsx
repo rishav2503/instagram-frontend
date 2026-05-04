@@ -1,4 +1,3 @@
-const [feedUser, setFeedUser] = useState(null);
 import { io } from "socket.io-client";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
@@ -604,11 +603,11 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   .filter(post => {
     if (!user) return false;
 
-    const isFollowing = feedUser?.following?.some(
+    const isFollowing = user.following?.some(
       f => (f._id || f) === post.userId?._id
     );
 
-    const isOwnPost = post.userId?._id === feedUser?._id;
+    const isOwnPost = post.userId?._id === user._id;
 
     return isFollowing || isOwnPost;
   })
@@ -946,7 +945,7 @@ export default function App() {
     // prevent duplicate
     if (prev.find(p => p._id === newPost._id)) return prev;
 
-    const isFollowing = feedUser?.following?.some(
+    const isFollowing = user.following?.some(
       f => (f._id || f) === newPost.userId?._id
     );
 
@@ -1030,7 +1029,6 @@ socketRef.current.on("follow_updated", ({ currentUser, targetUser }) => {
         const data = await res.json();
         setUser(data);
         setProfileUser(data);
-        setFeedUser(data);
       } else {
         handleLogout();
       }
@@ -1236,8 +1234,7 @@ const handleProfileUpdate = async (name) => {
 
     // ✅ VERY IMPORTANT (fix)
     setUser(data);          // update navbar name
-    setProfileUser(data);
-    setFeedUser(data);  
+    setProfileUser(data);  
 
     alert("Profile updated ✅");
 
