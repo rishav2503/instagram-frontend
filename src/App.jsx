@@ -204,7 +204,12 @@ const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeAiCommentId, setActiveAiCommentId] = useState(null);
 
 
-const handleTouchStart = (e)
+const handleTouchStart = (e) => {
+  if (window.scrollY === 0) {
+    setIsPulling(true);
+    setPullY(e.touches[0].clientY);
+  }
+};
   const handleMagicCaption = async () => {
   if (!postData.image) return;
 
