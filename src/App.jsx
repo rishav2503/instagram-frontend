@@ -965,22 +965,7 @@ export default function App() {
   });
 
   socketRef.current.on("new_post", (newPost) => {
-  setPosts(prev => {
-    if (!user) return prev;
-
-    // prevent duplicate
-    if (prev.find(p => p._id === newPost._id)) return prev;
-
-    const isFollowing = user.following?.some(
-      f => (f._id || f) === newPost.userId?._id
-    );
-
-    const isOwnPost = newPost.userId?._id === user._id;
-
-    if (!isFollowing && !isOwnPost) return prev;
-
-    return [newPost, ...prev];
-  });
+  console.log("New post received, waiting for refresh...");
 });
 
   socketRef.current.on("update-like", (updatedPost) => {
