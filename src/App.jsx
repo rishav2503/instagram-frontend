@@ -368,6 +368,19 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
       : [...prev.following, profileUser._id]
   };
 });
+setSuggestedUsers(prev => {
+  const isFollowing = user.following?.some(
+    f => (f._id || f) === profileUser._id
+  );
+
+  if (isFollowing) {
+    // unfollow → add back
+    return [...prev, profileUser];
+  } else {
+    // follow → remove
+    return prev.filter(u => u._id !== profileUser._id);
+  }
+});
 
   try {
     const res = await fetch(`${API_URL}/follow/${profileUser._id}`, {
@@ -639,29 +652,36 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   <button
     onClick={async () => {
 
-      let isUnfollow = false;
+  let isUnfollow = false;
 
-      // 🔥 instant UI update
-      setUser(prev => {
-        const isFollowing = prev.following.some(
-          f => (f._id || f) === post.userId._id
-        );
+  setUser(prev => {
+    const isFollowing = prev.following.some(
+      f => (f._id || f) === post.userId._id
+    );
 
-        isUnfollow = isFollowing;
+    isUnfollow = isFollowing;
 
-        return {
-          ...prev,
-          following: isFollowing
-            ? prev.following.filter(id => id !== post.userId._id)
-            : [...prev.following, post.userId._id]
-        };
-      });
+    return {
+      ...prev,
+      following: isFollowing
+        ? prev.following.filter(id => id !== post.userId._id)
+        : [...prev.following, post.userId._id]
+    };
+  });
 
-      // ✅ REMOVE POSTS IF UNFOLLOW
-      
+  // 🔥 INSTANT SUGGESTION UPDATE
+  setSuggestedUsers(prev => {
+    if (isUnfollow) {
+      // add back to suggestions
+      return [...prev, post.userId];
+    } else {
+      // remove from suggestions
+      return prev.filter(u => u._id !== post.userId._id);
+    }
+  });
 
-      try {
-        const res = await fetch(`${API_URL}/follow/${post.userId._id}`, {
+  try {
+    const res = await fetch(`${API_URL}/follow/${post.userId._id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
