@@ -188,7 +188,6 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
     </div>
   </div>
 );
-
 const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handleProfileUpdate, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs}) => {
   console.log("PROFILE USER:", profileUser);
   console.log("POSTS:", posts);
@@ -335,7 +334,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   <button
     onClick={async () => {
       try {
-        const res = await fetch(`${apiURL}/follow/${profileUser._id}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/follow/${profileUser._id}`, {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`
@@ -596,9 +595,10 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   <button
     onClick={async () => {
       try {
-        const res = await fetch(`${apiURL}/follow/${post.userId._id}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/follow/${post.userId._id}`, {
           method: "PUT",
           headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`
           }
         });
@@ -802,9 +802,6 @@ export default function App() {
   const [profileUser, setProfileUser] = useState(null);
   const [activePostId, setActivePostId] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
-  const [apiURL, setApiURL] = useState(
-  localStorage.getItem("api_url") || DEFAULT_API_URL
-);
   const [view, setView] = useState('login'); 
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || '');
@@ -882,8 +879,6 @@ socketRef.current.on("profile_updated", (updatedUser) => {
   return () => socketRef.current.disconnect();
 }, [token, apiURL]); 
 
-
-  useEffect(() => { localStorage.setItem('api_url', apiURL); }, [apiURL]);
 
   const getHeaders = useCallback((auth = true) => {
     const h = { 'ngrok-skip-browser-warning': 'true' };
@@ -996,6 +991,7 @@ socketRef.current.on("profile_updated", (updatedUser) => {
     const res = await fetch(`${apiURL}/delete-post/${postId}`, {
       method: "DELETE",
       headers: {
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
     });
