@@ -6,7 +6,7 @@ import {
   ShieldCheck, ExternalLink, Settings, Globe, Camera, Home, UserPlus,
   ArrowRight, X, Layout, Sparkles, Wand2, Zap, MessageSquareQuote
 } from 'lucide-react';
-
+const API_URL = import.meta.env.VITE_API_URL;
 const DEFAULT_API_URL = "https://instagram-backend-hswx.onrender.com";;
 
 
@@ -131,7 +131,7 @@ const InputField = ({ icon: Icon, type, placeholder, value, onChange, required =
 
 // --- SUB-VIEWS ---
 
-const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, error, apiURL, setShowConfig }) => (
+const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, error, API_URL, setShowConfig }) => (
   <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
     <div className="max-w-md w-full bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl border border-slate-100 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 to-indigo-600" />
@@ -158,7 +158,7 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
             <AlertCircle size={14} /> Backend Issue
           </div>
           <p className="text-xs text-red-500 font-medium">{error}</p>
-          <a href={apiURL} target="_blank" rel="noreferrer" className="text-[10px] bg-red-600 text-white font-bold py-2 rounded-xl text-center shadow-lg">1. Backend not connected</a>
+          <a href={API_URL} target="_blank" rel="noreferrer" className="text-[10px] bg-red-600 text-white font-bold py-2 rounded-xl text-center shadow-lg">1. Backend not connected</a>
         </div>
       )}
 
@@ -188,7 +188,7 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
     </div>
   </div>
 );
-const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handleProfileUpdate, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs}) => {
+const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handleProfileUpdate, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, API_URL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs}) => {
   console.log("PROFILE USER:", profileUser);
   console.log("POSTS:", posts);
   const [aiLoading, setAiLoading] = useState(false);
@@ -654,7 +654,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   onDoubleClick={() => handleLike(post._id)}
 >
   <img
-    src={post.image?.startsWith("http") ? post.image : `${apiURL}${post.image}`}
+    src={post.image?.startsWith("http") ? post.image : `${API_URL}${post.image}`}
     className="w-full h-full object-contain"
     alt="Post"
     onError={(e) => {
@@ -819,7 +819,7 @@ export default function App() {
   if (!token) return; // ✅ VERY IMPORTANT
 
   if (!socketRef.current) {
-  socketRef.current = io(apiURL, {
+  socketRef.current = io(API_URL, {
   transports: ["websocket"],
   withCredentials: true
 });
@@ -877,7 +877,7 @@ socketRef.current.on("profile_updated", (updatedUser) => {
 });
 
   return () => socketRef.current.disconnect();
-}, [token, apiURL]); 
+}, [token, API_URL]); 
 
 
   const getHeaders = useCallback((auth = true) => {
@@ -888,7 +888,7 @@ socketRef.current.on("profile_updated", (updatedUser) => {
 
   const fetchProfile = useCallback(async () => {
     try {
-      const res = await fetch(`${apiURL}/profile`, { headers: getHeaders() });
+      const res = await fetch(`${API_URL}/profile`, { headers: getHeaders() });
       if (res.ok) {
         const data = await res.json();
         setUser(data);
@@ -899,12 +899,12 @@ socketRef.current.on("profile_updated", (updatedUser) => {
     } catch (err) {
       setError("Backend unreachable. Check your backened server URL in settings.");
     }
-  }, [getHeaders, apiURL]);
+  }, [getHeaders, API_URL]);
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${apiURL}/posts`, { headers: getHeaders(false) });
+      const res = await fetch(`${API_URL}/posts`, { headers: getHeaders(false) });
       if (res.ok) {
         const data = await res.json();
         setPosts(Array.isArray(data) ? data : []);
@@ -914,7 +914,7 @@ socketRef.current.on("profile_updated", (updatedUser) => {
     } finally {
       setLoading(false);
     }
-  }, [getHeaders, apiURL]);
+  }, [getHeaders, API_URL]);
 
   useEffect(() => {
   if (!token) return;
@@ -936,7 +936,7 @@ socketRef.current.on("profile_updated", (updatedUser) => {
     const endpoint = type === 'login' ? '/login' : '/register';
     
     try {
-      const res = await fetch(`${apiURL}${endpoint}`, {
+      const res = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { ...getHeaders(false), 'Content-Type': 'application/json' },
         body: JSON.stringify(authData)
@@ -971,7 +971,7 @@ socketRef.current.on("profile_updated", (updatedUser) => {
     formData.append('caption', postData.caption);
     formData.append('image', postData.image);
     try {
-      const res = await fetch(`${apiURL}/create-post`, {
+      const res = await fetch(`${API_URL}/create-post`, {
         method: 'POST',
         headers: getHeaders(true),
         body: formData
@@ -988,7 +988,7 @@ socketRef.current.on("profile_updated", (updatedUser) => {
 
   const handleDeletePost = async (postId) => {
   try {
-    const res = await fetch(`${apiURL}/delete-post/${postId}`, {
+    const res = await fetch(`${API_URL}/delete-post/${postId}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -1029,7 +1029,7 @@ const handleLike = async (postId) => {
 
   // 🔥 3. backend call (no delay)
   try {
-    await fetch(`${apiURL}/like`, {
+    await fetch(`${API_URL}/like`, {
       method: "PUT",
       headers: {
         ...getHeaders(true),
@@ -1049,7 +1049,7 @@ const handleComment = async (postId, text) => {
   if (!text) return;
 
   try {
-    const res = await fetch(`${apiURL}/comment`, {
+    const res = await fetch(`${API_URL}/comment`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1069,7 +1069,7 @@ const handleComment = async (postId, text) => {
 };
 const handleProfileUpdate = async (name) => {
   try {
-    const res = await fetch(`${apiURL}/update-profile`, {
+    const res = await fetch(`${API_URL}/update-profile`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -1111,7 +1111,7 @@ const handleProfileUpdate = async (name) => {
           handleAuth={handleAuth}
           loading={loading}
           error={error}
-          apiURL={apiURL}
+          API_URL={API_URL}
           setShowConfig={setShowSettings}
         />
       ) : (
@@ -1131,7 +1131,7 @@ const handleProfileUpdate = async (name) => {
           postData={postData}
           setPostData={setPostData}
           loading={loading}
-          apiURL={apiURL}
+          API_URL={API_URL}
           handleLike={handleLike}
           likedPostId={likedPostId}
           handleComment={handleComment}
@@ -1154,7 +1154,7 @@ const handleProfileUpdate = async (name) => {
              <p className="text-sm text-slate-500 mb-6 font-medium leading-relaxed">
                Paste your current <span className="text-blue-600 font-bold">backend url</span> below.
              </p>
-             <InputField icon={Globe} type="text" placeholder="https://....ngrok-free.dev" value={apiURL} onChange={(e) => setApiURL(e.target.value)} />
+             <InputField icon={Globe} type="text" placeholder="https://....ngrok-free.dev" value={API_URL} onChange={(e) => setApiURL(e.target.value)} />
              <div className="mt-6">
                <GradientButton onClick={() => setShowSettings(false)} color="blue">Save Connection</GradientButton>
              </div>
