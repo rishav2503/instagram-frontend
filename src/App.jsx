@@ -1040,11 +1040,12 @@ socketRef.current.on("follow_updated", ({ currentUser, targetUser }) => {
       if (res.ok) {
         const data = await res.json();
         const filtered = (Array.isArray(data) ? data : []).filter(post => {
-  const isFollowing = user?.following?.some(
-    f => (f._id || f) === post.userId?._id
-  );
+  if (!user) return false; 
 
-  const isOwnPost = post.userId?._id === user?._id;
+  const followingIds = user.following?.map(f => f._id || f) || [];
+
+  const isFollowing = followingIds.includes(post.userId?._id);
+  const isOwnPost = post.userId?._id === user._id;
 
   return isFollowing || isOwnPost;
 });
@@ -1075,16 +1076,15 @@ setPosts(filtered);
   useEffect(() => {
   if (!token) return;
 
-  fetchProfile();
-  fetchPosts();
-  fetchSuggestedUsers();
+  const load = async () => {
+    await fetchProfile();   
+    await fetchPosts();     
+    fetchSuggestedUsers();
+  };
 
-  // 🔥 auto refresh every 3 seconds
-  
+  load();
 
-  
-
-}, [token, fetchProfile, fetchPosts]);
+}, [token]);
 
   const handleAuth = async (e, type) => {
     e.preventDefault();
