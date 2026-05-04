@@ -316,6 +316,12 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
   className="border px-2 py-1 rounded w-full"
 />
         <p className="text-gray-500 text-sm">{profileUser?.email}</p>
+        <p className="text-sm">
+  Followers: {profileUser?.followers?.length || 0}
+</p>
+<p className="text-sm">
+  Following: {profileUser?.following?.length || 0}
+</p>
         <button
   onClick={() => handleProfileUpdate(profileUser.name)}
   className="mt-2 bg-blue-500 text-white px-3 py-1 rounded"
@@ -324,6 +330,31 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
 </button>
       </div>
     </div>
+
+    {user?._id !== profileUser?._id && (
+  <button
+    onClick={async () => {
+      try {
+        const res = await fetch(`${apiURL}/follow/${profileUser._id}`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const data = await res.json();
+
+        alert(data.isFollowing ? "Followed ✅" : "Unfollowed ❌");
+
+      } catch (err) {
+        console.log(err);
+      }
+    }}
+    className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+  >
+    Follow / Unfollow
+  </button>
+)}
 
     {/* POSTS */}
     <h3 className="font-bold mb-3">Posts</h3>
