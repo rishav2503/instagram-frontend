@@ -189,7 +189,7 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
   </div>
 );
 
-const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUpdate, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs}) => {
+const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handleProfileUpdate, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, apiURL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs}) => {
   console.log("PROFILE USER:", profileUser);
   console.log("POSTS:", posts);
   const [aiLoading, setAiLoading] = useState(false);
@@ -334,25 +334,36 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
     {user?._id !== profileUser?._id && (
   <button
     onClick={async () => {
-      try {
-        const res = await fetch(`${apiURL}/follow/${profileUser._id}`, {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        const data = await res.json();
-
-        alert(data.isFollowing ? "Followed ✅" : "Unfollowed ❌");
-
-      } catch (err) {
-        console.log(err);
+  try {
+    const res = await fetch(`${apiURL}/follow/${profileUser._id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`
       }
-    }}
+    });
+
+    const data = await res.json();
+
+    // 🔥 IMPORTANT: update UI instantly
+    setProfileUser(prev => ({
+      ...prev,
+      followers: data.followers
+    }));
+
+    setUser(prev => ({
+      ...prev,
+      following: data.following
+    }));
+
+  } catch (err) {
+    console.log(err);
+  }
+}}
     className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
   >
-    Follow / Unfollow
+   {user?.following?.includes(profileUser._id) 
+  ? "Unfollow" 
+  : "Follow"}
   </button>
 )}
 
@@ -1090,6 +1101,7 @@ const handleProfileUpdate = async (name) => {
           setView={setView}
           posts={posts}
           fetchPosts={fetchPosts}
+          token={token}
           handleCreatePost={handleCreatePost}
           handleDeletePost={handleDeletePost}
           handleLogout={handleLogout}
