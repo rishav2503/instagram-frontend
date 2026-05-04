@@ -7,7 +7,7 @@ import {
   ArrowRight, X, Layout, Sparkles, Wand2, Zap, MessageSquareQuote
 } from 'lucide-react';
 
-const DEFAULT_API_URL = "https://instagram-backend-hswx.onrender.com";
+const DEFAULT_API_URL = import.meta.env.VITE_API_URL;
 
 
 /**
@@ -54,14 +54,15 @@ const callGemini = async (prompt, image = null) => {
     const res = await fetch(`${DEFAULT_API_URL}/gemini`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-      },
+  "Content-Type": "application/json",
+  "Authorization": `Bearer ${localStorage.getItem("token")}`
+},
       
       body: JSON.stringify({
         prompt,
         
 
-image: null
+image: compressed ? compressed.split(",")[1] : null
       }),
     });
 
@@ -715,7 +716,6 @@ onKeyDown={(e) => {
       
       <footer className="py-10 text-center opacity-30 select-none flex items-center justify-center gap-4">
         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-        <p className="text-[10px] font-black uppercase tracking-[0.2em]">{apiURL}</p>
       </footer>
     </div>
   );
