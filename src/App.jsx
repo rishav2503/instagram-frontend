@@ -6,7 +6,7 @@ import {
   ShieldCheck, ExternalLink, Settings, Globe, Camera, Home, UserPlus,
   ArrowRight, X, Layout, Sparkles, Wand2, Zap, MessageSquareQuote
 } from 'lucide-react';
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "https://instagram-backend-hswx.onrender.com";
 const DEFAULT_API_URL = "https://instagram-backend-hswx.onrender.com";;
 
 
@@ -334,7 +334,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   <button
     onClick={async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/follow/${profileUser._id}`, {
+        const res = await fetch(`${API_URL}/follow/${profileUser._id}`, {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`
@@ -595,7 +595,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   <button
     onClick={async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/follow/${post.userId._id}`, {
+        const res = await fetch(`${API_URL}/follow/${post.userId._id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
