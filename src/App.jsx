@@ -336,12 +336,12 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
 
   // 🔥 instant UI update
   setUser(prev => {
-    const isFollowing = prev.following.includes(profileUser._id);
+    const isFollowing = prev.following.some(f => f._id === profileUser._id);
 
     return {
       ...prev,
       following: isFollowing
-        ? prev.following.filter(id => id !== profileUser._id)
+        ? prev.following.filter(f => f._id !== profileUser._id)
         : [...prev.following, profileUser._id]
     };
   });
@@ -365,7 +365,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
 }}
     className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
   >
-    {user?.following?.includes(profileUser._id)
+    {user?.following?.some(f => f._id === profileUser._id)
       ? "Unfollow"
       : "Follow"}
   </button>
@@ -612,7 +612,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
 
   // 🔥 instant UI update (no lag)
   setUser(prev => {
-    const isFollowing = prev.following.includes(post.userId._id);
+    const isFollowing = prev.following.some(f => f._id === post.userId._id);
 
     return {
       ...prev,
@@ -650,7 +650,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
 }}
     className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-bold hover:bg-blue-600 transition"
   >
-    {user?.following?.includes(post.userId._id)
+    {user?.following?.some(f => f._id === post.userId._id)
       ? "Unfollow"
       : "Follow"}
   </button>
