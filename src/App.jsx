@@ -198,7 +198,52 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   setView("profile");
 };
   const [aiLoading, setAiLoading] = useState(false);
+  const [pullY, setPullY] = useState(0);
+const [isPulling, setIsPulling] = useState(false);
+const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeAiCommentId, setActiveAiCommentId] = useState(null);
+
+  const [aiLoading, setAiLoading] = useState(false);
+const [activeAiCommentId, setActiveAiCommentId] = useState(null);
+
+// 🔥 ADD HERE (STEP 2 LOCATION)
+const [pullY, setPullY] = useState(0);
+const [isPulling, setIsPulling] = useState(false);
+const [isRefreshing, setIsRefreshing] = useState(false);
+
+const handleTouchStart = (e) => {
+  if (window.scrollY === 0) {
+    setIsPulling(true);
+    setPullY(e.touches[0].clientY);
+  }
+};
+
+const handleTouchMove = (e) => {
+  if (!isPulling) return;
+
+  const currentY = e.touches[0].clientY;
+  const diff = currentY - pullY;
+
+  if (diff > 0 && diff < 150) {
+    document.body.style.transform = `translateY(${diff}px)`;
+  }
+};
+
+const handleTouchEnd = async (e) => {
+  if (!isPulling) return;
+
+  const endY = e.changedTouches[0].clientY;
+  const diff = endY - pullY;
+
+  document.body.style.transform = "translateY(0px)";
+  setIsPulling(false);
+
+  if (diff > 80) {
+    setIsRefreshing(true);
+    await fetchPosts();
+    setIsRefreshing(false);
+  }
+};
 
   const handleMagicCaption = async () => {
   if (!postData.image) return;
@@ -264,7 +309,12 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
+    <div
+  className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20"
+  onTouchStart={handleTouchStart}
+  onTouchMove={handleTouchMove}
+  onTouchEnd={handleTouchEnd}
+>
       <nav className="bg-white/80 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-50">
         <div className="max-w-2xl mx-auto px-6 h-16 flex items-center justify-between">
           <h1 className="text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent cursor-pointer active:scale-95 transition-transform" onClick={() => { setView('feed'); fetchPosts(); }}>
@@ -308,6 +358,13 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
       </nav>
 
       <main className="max-w-2xl mx-auto py-8 px-4">
+        {isRefreshing && (
+  <div className="text-center mb-4">
+    <span className="text-blue-500 font-bold animate-pulse">
+      Refreshing feed...
+    </span>
+  </div>
+)}
         
         {view === 'profile' ? (
   <div className="bg-white p-6 rounded-2xl shadow">
