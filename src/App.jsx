@@ -198,39 +198,13 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   setView("profile");
 };
   const [aiLoading, setAiLoading] = useState(false);
-  const [pullY, setPullY] = useState(0);
-const [isPulling, setIsPulling] = useState(false);
-const [isRefreshing, setIsRefreshing] = useState(false);
-const handleTouchMove = (e) => {
-  if (!isPulling) return;
+  
 
-  const currentY = e.touches[0].clientY;
-  const diff = currentY - pullY;
 
-  if (diff > 0 && diff < 120) {
-    document.documentElement.style.transform = `translateY(${diff}px)`;
-  }
-};
-
-const handleTouchEnd = async () => {
-  if (!isPulling) return;
-
-  setIsPulling(false);
-  document.documentElement.style.transform = "translateY(0px)";
-
-  setIsRefreshing(true);
-  await fetchPosts();
-  setIsRefreshing(false);
-};
   const [activeAiCommentId, setActiveAiCommentId] = useState(null);
 
 
-const handleTouchStart = (e) => {
-  if (window.scrollY === 0) {
-    setIsPulling(true);
-    setPullY(e.touches[0].clientY);
-  }
-};
+
   const handleMagicCaption = async () => {
   if (!postData.image) return;
 
@@ -295,13 +269,7 @@ const handleTouchStart = (e) => {
   };
 
   return (
-    <div
-  className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20"
-  style={{ touchAction: "pan-y", overscrollBehavior: "contain" }}
-  onTouchStart={handleTouchStart}
-  onTouchMove={handleTouchMove}
-  onTouchEnd={handleTouchEnd}
->
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
       <nav className="bg-white/80 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-50">
         <div className="max-w-2xl mx-auto px-6 h-16 flex items-center justify-between">
           <h1 className="text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent cursor-pointer active:scale-95 transition-transform" onClick={() => { setView('feed'); fetchPosts(); }}>
@@ -344,19 +312,8 @@ const handleTouchStart = (e) => {
         </div>
       </nav>
 
-      <main
-  className="max-w-2xl mx-auto py-8 px-4"
-  onTouchStart={handleTouchStart}
-  onTouchMove={handleTouchMove}
-  onTouchEnd={handleTouchEnd}
->
-        {isRefreshing && (
-  <div className="text-center mb-4">
-    <span className="text-blue-500 font-bold animate-pulse">
-      Refreshing feed...
-    </span>
-  </div>
-)}
+      <main className="max-w-2xl mx-auto py-8 px-4">
+        
         
         {view === 'profile' ? (
   <div className="bg-white p-6 rounded-2xl shadow">
