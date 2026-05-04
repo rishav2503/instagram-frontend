@@ -9,6 +9,7 @@ import {
 
 const DEFAULT_API_URL = "https://instagram-backend-hswx.onrender.com";
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_KEY;
+console.log("Gemini Key:", GEMINI_API_KEY);
 
 /**
  * GEMINI API UTILS
@@ -52,7 +53,7 @@ const callGemini = async (prompt, imageBase64 = null) => {
 
   if (!res.ok) {
     console.log("Gemini error:", data);
-    throw new Error("Gemini API failed");
+    throw new Error(data?.error?.message || "Gemini failed");
   }
 
   return data;
@@ -183,7 +184,7 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
     const suggestion = await Promise.race([
       callGemini("Generate a cool, short social media caption for this image. Use emojis.", base64),
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout")), 8000)
+        setTimeout(() => reject(new Error("Timeout")), 20000)
       )
     ]);
 
@@ -212,7 +213,7 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
       const suggestion = await Promise.race([
   callGemini(`Make this social media caption more engaging and exciting: "${postData.caption}"`),
   new Promise((_, reject) =>
-    setTimeout(() => reject(new Error("Timeout")), 8000)
+    setTimeout(() => reject(new Error("Timeout")), 20000)
   )
 ]);
       setPostData(prev => ({ ...prev, caption: suggestion.trim().replace(/^"|"$/g, '') }));
