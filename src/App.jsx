@@ -7,7 +7,7 @@ import {
   ArrowRight, X, Layout, Sparkles, Wand2, Zap, MessageSquareQuote
 } from 'lucide-react';
 
-const DEFAULT_API_URL = import.meta.env.VITE_API_URL;
+const DEFAULT_API_URL = "https://instagram-backend-hswx.onrender.com";;
 
 
 /**
@@ -802,7 +802,9 @@ export default function App() {
   const [profileUser, setProfileUser] = useState(null);
   const [activePostId, setActivePostId] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
-  const [apiURL, setApiURL] = useState(DEFAULT_API_URL);
+  const [apiURL, setApiURL] = useState(
+  localStorage.getItem("api_url") || DEFAULT_API_URL
+);
   const [view, setView] = useState('login'); 
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || '');
