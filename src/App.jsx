@@ -405,13 +405,9 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
     className="cursor-pointer"
   >
     <img
-      src={
-  post.image?.startsWith("http")
-    ? post.image
-    : `${API_URL}${post.image}`
-}
-      className="w-full h-60 object-cover rounded"
-    />
+  src={post.image}
+  className="w-full h-60 object-cover rounded"
+/>
   </div>
 
   {/* LIKE + COMMENT */}
@@ -669,7 +665,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   onDoubleClick={() => handleLike(post._id)}
 >
   <img
-    src={post.image?.startsWith("http") ? post.image : `${API_URL}${post.image}`}
+    src={post.image}
     className="w-full h-full object-contain"
     alt="Post"
     onError={(e) => {
