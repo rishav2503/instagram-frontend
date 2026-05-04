@@ -667,7 +667,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
 
         setUser(data.currentUser);
 
-        fetchPosts();
+    
         fetchSuggestedUsers();
 
       } catch (err) {
@@ -1016,10 +1016,7 @@ socketRef.current.on("follow_updated", ({ currentUser, targetUser }) => {
         ? { ...post, userId: targetUser }
         : post
     )
-  );
-  setTimeout(() => {
-  fetchPosts(); // slight delay for consistency
-}, 300); 
+  ); 
 });
 
 
