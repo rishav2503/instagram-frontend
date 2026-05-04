@@ -319,14 +319,23 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
       </div>
 
       <div>
-        <h2 className="font-bold text-lg">{profileUser?.name}</h2>
-        <p className="text-gray-500 text-sm">{profileUser?.email}</p>
-        <p className="text-sm">
-  Followers: {profileUser?.followers?.length || 0}
-</p>
-<p className="text-sm">
-  Following: {profileUser?.following?.length || 0}
-</p>
+  <div className="flex flex-col gap-1">
+  <h2 className="font-bold text-lg">{profileUser?.name}</h2>
+
+  <p className="text-gray-400 text-sm">
+    {profileUser?.email}
+  </p>
+
+  <div className="flex gap-4 text-sm mt-1">
+    <span>
+      <b>{profileUser?.followers?.length || 0}</b> followers
+    </span>
+
+    <span>
+      <b>{profileUser?.following?.length || 0}</b> following
+    </span>
+  </div>
+</div>
         <button
   onClick={() => handleProfileUpdate(profileUser.name)}
   className="mt-2 bg-blue-500 text-white px-3 py-1 rounded"
@@ -637,6 +646,8 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
     // 🔥 sync correct data
     setUser(data.currentUser);
 
+    fetchSuggestedUsers();
+    
     setPosts(prev =>
       prev.map(p =>
         p.userId._id === data.targetUser._id
@@ -664,14 +675,13 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
                   </div>
                 </div>
 
-                <div
-  className="w-full bg-black flex items-center justify-center cursor-pointer relative group"
-  style={{ maxHeight: "600px" }}
-  onDoubleClick={() => handleLike(post._id)}
+               <div
+  className="w-full bg-black flex items-center justify-center cursor-pointer relative group overflow-hidden rounded-xl"
+  style={{ maxHeight: "500px" }}
 >
   <img
     src={post.image}
-    className="w-full h-full object-contain"
+    className="w-full max-h-[500px] object-contain"
     alt="Post"
     onError={(e) => {
       e.target.onerror = null;
@@ -980,6 +990,7 @@ socketRef.current.on("follow_updated", ({ currentUser, targetUser }) => {
         : post
     )
   );
+  fetchPosts(); 
 });
 
 
