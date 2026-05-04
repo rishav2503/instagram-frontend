@@ -195,17 +195,16 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
   const [activeAiCommentId, setActiveAiCommentId] = useState(null);
 
   const handleMagicCaption = async () => {
-    if (!postData.image) return;
-    setAiLoading(true);
-    try {
-      const reader = new FileReader();
-      reader.readAsDataURL(postData.image);
-      reader.onload = async () => {
-  try {
-    const base64 = reader.result;
+  if (!postData.image) return;
 
+  setAiLoading(true);
+
+  try {
     const suggestion = await Promise.race([
-      callGemini("Generate a cool, short social media caption for this image. Use emojis.", base64),
+      callGemini(
+        "Generate a cool, short social media caption for this image. Use emojis.",
+        postData.image
+      ),
       new Promise((_, reject) =>
         setTimeout(() => reject(new Error("Timeout")), 20000)
       )
@@ -213,21 +212,16 @@ const Dashboard = ({ user, setUser, profileUser, setProfileUser, handleProfileUp
 
     setPostData(prev => ({
       ...prev,
-      caption: suggestion.trim().replace(/^"|"$/g, '')
+      caption: suggestion.trim().replace(/^"|"$/g, "")
     }));
 
   } catch (err) {
     console.log("Gemini failed:", err);
     alert("AI is slow or not responding ❌");
   } finally {
-    setAiLoading(false); // 🔥 ALWAYS STOP LOADING
+    setAiLoading(false);
   }
 };
-    } catch (err) {
-      console.error(err);
-      setAiLoading(false);
-    }
-  };
 
   const handleEnhanceCaption = async () => {
     if (!postData.caption) return;
