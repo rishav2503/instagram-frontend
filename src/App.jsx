@@ -331,39 +331,40 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
       </div>
     </div>
 
-    <button
-  onClick={async () => {
-    try {
-      const res = await fetch(`${apiURL}/follow/${profileUser._id}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+    {user?._id !== profileUser?._id && (
+  <button
+    onClick={async () => {
+      try {
+        const res = await fetch(`${apiURL}/follow/${profileUser._id}`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      setProfileUser(prev => ({
-        ...prev,
-        followers: data.followers
-      }));
+        setProfileUser(prev => ({
+          ...prev,
+          followers: data.followers
+        }));
 
-      setUser(prev => ({
-        ...prev,
-        following: data.following
-      }));
+        setUser(prev => ({
+          ...prev,
+          following: data.following
+        }));
 
-    } catch (err) {
-      console.log(err);
-    }
-  }}
-  className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
->
-  {user?.following?.includes(profileUser._id)
-    ? "Unfollow"
-    : "Follow"}
-</button>
-
+      } catch (err) {
+        console.log(err);
+      }
+    }}
+    className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+  >
+    {user?.following?.includes(profileUser._id)
+      ? "Unfollow"
+      : "Follow"}
+  </button>
+)}
     {/* POSTS */}
     <h3 className="font-bold mb-3">Posts</h3>
 
@@ -588,6 +589,38 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
               <article key={post._id} className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden animate-in fade-in duration-700 hover:shadow-lg transition-shadow">
                 <div className="p-5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
+                    <p className="font-bold text-slate-900 text-sm">
+                      {post.userId?.name || 'Anonymous'}
+                    </p>
+                    {post.userId?._id !== user?._id && (
+  <button
+    onClick={async () => {
+      try {
+        const res = await fetch(`${apiURL}/follow/${post.userId._id}`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const data = await res.json();
+
+        setUser(prev => ({
+          ...prev,
+          following: data.following
+        }));
+
+      } catch (err) {
+        console.log(err);
+      }
+    }}
+    className="text-xs bg-blue-500 text-white px-2 py-1 rounded mt-1"
+  >
+    {user?.following?.includes(post.userId._id)
+      ? "Unfollow"
+      : "Follow"}
+  </button>
+)}
                     <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 via-indigo-600 to-purple-600 p-[2px]">
                       <div className="w-full h-full rounded-full bg-white flex items-center justify-center font-black text-indigo-600 text-sm">
                         {post.userId?.name?.[0]?.toUpperCase() || 'U'}
