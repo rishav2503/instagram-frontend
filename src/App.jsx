@@ -599,7 +599,19 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   </div>
 )}
 
-            {posts.map((post) => {
+            {posts
+  .filter(post => {
+    if (!user) return false;
+
+    const isFollowing = user.following?.some(
+      f => (f._id || f) === post.userId?._id
+    );
+
+    const isOwnPost = post.userId?._id === user._id;
+
+    return isFollowing || isOwnPost;
+  })
+  .map((post) => {
               const isLikedAnim = likedPostId === post._id;
               return (
               <article key={post._id} className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden animate-in fade-in duration-700 hover:shadow-lg transition-shadow">
@@ -621,46 +633,59 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   <button
     onClick={async () => {
 
-  // 🔥 instant UI update (no lag)
-  setUser(prev => {
-    const isFollowing = prev.following.some(f => (f._id || f) === post.userId._id);
+      let isUnfollow = false;
 
-    return {
-      ...prev,
-      following: isFollowing
-        ? prev.following.filter(id => id !== post.userId._id)
-        : [...prev.following, post.userId._id]
-    };
-  });
+      // 🔥 instant UI update
+      setUser(prev => {
+        const isFollowing = prev.following.some(
+          f => (f._id || f) === post.userId._id
+        );
 
-  try {
-    const res = await fetch(`${API_URL}/follow/${post.userId._id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        isUnfollow = isFollowing;
+
+        return {
+          ...prev,
+          following: isFollowing
+            ? prev.following.filter(id => id !== post.userId._id)
+            : [...prev.following, post.userId._id]
+        };
+      });
+
+      // ✅ REMOVE POSTS IF UNFOLLOW
+      if (isUnfollow) {
+        setPosts(prev =>
+          prev.filter(p => {
+            const isFollowing = user.following?.some(
+              f => (f._id || f) === p.userId?._id
+            );
+
+            const isOwnPost = p.userId?._id === user._id;
+
+            return isFollowing || isOwnPost;
+          })
+        );
       }
-    });
 
-    const data = await res.json();
+      try {
+        const res = await fetch(`${API_URL}/follow/${post.userId._id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          }
+        });
 
-    // 🔥 sync correct data
-    setUser(data.currentUser);
-    fetchPosts();
-    fetchSuggestedUsers();
-    
-    setPosts(prev =>
-      prev.map(p =>
-        p.userId._id === data.targetUser._id
-          ? { ...p, userId: data.targetUser }
-          : p
-      )
-    );
+        const data = await res.json();
 
-  } catch (err) {
-    console.log(err);
-  }
-}}
+        setUser(data.currentUser);
+
+        fetchPosts();
+        fetchSuggestedUsers();
+
+      } catch (err) {
+        console.log(err);
+      }
+    }}
     className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-bold hover:bg-blue-600 transition"
   >
     {user?.following?.some(f => (f._id || f) === post.userId._id)
@@ -927,9 +952,21 @@ export default function App() {
 
   socketRef.current.on("new_post", (newPost) => {
   setPosts(prev => {
-  if (prev.find(p => p._id === newPost._id)) return prev;
-  return [newPost, ...prev];
-});
+    if (!user) return prev;
+
+    // prevent duplicate
+    if (prev.find(p => p._id === newPost._id)) return prev;
+
+    const isFollowing = user.following?.some(
+      f => (f._id || f) === newPost.userId?._id
+    );
+
+    const isOwnPost = newPost.userId?._id === user._id;
+
+    if (!isFollowing && !isOwnPost) return prev;
+
+    return [newPost, ...prev];
+  });
 });
 
   socketRef.current.on("update-like", (updatedPost) => {
@@ -1029,17 +1066,7 @@ socketRef.current.on("follow_updated", ({ currentUser, targetUser }) => {
       const res = await fetch(`${API_URL}/posts`, { headers: getHeaders(true) });
       if (res.ok) {
         const data = await res.json();
-        setPosts(
-  (Array.isArray(data) ? data : []).filter(post => {
-    const isFollowing = user?.following?.some(
-      f => (f._id || f) === post.userId?._id
-    );
-
-    const isOwnPost = post.userId?._id === user?._id;
-
-    return isFollowing || isOwnPost;
-  })
-);
+        setPosts(Array.isArray(data) ? data : []);
       }
     } catch (err) {
       setError("Failed to load feed.");
