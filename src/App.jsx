@@ -331,41 +331,38 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
       </div>
     </div>
 
-    {user?._id !== profileUser?._id && (
-  <button
-    onClick={async () => {
-  try {
-    const res = await fetch(`${apiURL}/follow/${profileUser._id}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+    <button
+  onClick={async () => {
+    try {
+      const res = await fetch(`${apiURL}/follow/${profileUser._id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    // 🔥 IMPORTANT: update UI instantly
-    setProfileUser(prev => ({
-      ...prev,
-      followers: data.followers
-    }));
+      setProfileUser(prev => ({
+        ...prev,
+        followers: data.followers
+      }));
 
-    setUser(prev => ({
-      ...prev,
-      following: data.following
-    }));
+      setUser(prev => ({
+        ...prev,
+        following: data.following
+      }));
 
-  } catch (err) {
-    console.log(err);
-  }
-}}
-    className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
-  >
-   {user?.following?.includes(profileUser._id) 
-  ? "Unfollow" 
-  : "Follow"}
-  </button>
-)}
+    } catch (err) {
+      console.log(err);
+    }
+  }}
+  className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+>
+  {user?.following?.includes(profileUser._id)
+    ? "Unfollow"
+    : "Follow"}
+</button>
 
     {/* POSTS */}
     <h3 className="font-bold mb-3">Posts</h3>
@@ -776,11 +773,6 @@ export default function App() {
   const [view, setView] = useState('login'); 
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || '');
-  useEffect(() => {
-  if (view === "profile") {
-    fetchProfile();
-  }
-}, [view]);
   const [posts, setPosts] = useState([]);
   const [likedPostId, setLikedPostId] = useState(null);
   const [loading, setLoading] = useState(false);
