@@ -569,20 +569,16 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
         ) : (
           <div className="space-y-10">
             {posts.length === 0 && !loading && (
-                <div className="text-center py-24 bg-white rounded-[2rem] border border-slate-100 shadow-sm px-6">
-                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
-                    <ImageIcon size={40} />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-800">Your feed is quiet</h3>
-                  <p className="text-slate-500 mt-2 max-w-xs mx-auto text-sm">Be the first to share a moment with the community.</p>
-                  <button 
-                    onClick={() => setView('create')}
-                    className="mt-8 px-8 py-3 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all"
-                  >
-                    Create First Post
-                  </button>
-                </div>
-            )}
+  <div className="text-center py-20">
+    <p className="text-gray-500 text-lg font-semibold">
+      Follow users to see posts 👥
+    </p>
+
+    <p className="text-gray-400 text-sm mt-2">
+      Your feed will show posts only from people you follow
+    </p>
+  </div>
+)}
 
             {posts.map((post) => {
               const isLikedAnim = likedPostId === post._id;
@@ -938,7 +934,7 @@ socketRef.current.on("follow_updated", ({ currentUser, targetUser }) => {
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/posts`, { headers: getHeaders(false) });
+      const res = await fetch(`${API_URL}/posts`, { headers: getHeaders(true) });
       if (res.ok) {
         const data = await res.json();
         setPosts(Array.isArray(data) ? data : []);
