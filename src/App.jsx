@@ -333,30 +333,36 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
     {user?._id !== profileUser?._id && (
   <button
     onClick={async () => {
-      try {
-        const res = await fetch(`${API_URL}/follow/${profileUser._id}`, {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
 
-        const data = await res.json();
+  // 🔥 instant UI update
+  setUser(prev => {
+    const isFollowing = prev.following.includes(profileUser._id);
 
-        setProfileUser(prev => ({
-          ...prev,
-          followers: data.followers
-        }));
+    return {
+      ...prev,
+      following: isFollowing
+        ? prev.following.filter(id => id !== profileUser._id)
+        : [...prev.following, profileUser._id]
+    };
+  });
 
-        setUser(prev => ({
-          ...prev,
-          following: data.following
-        }));
-
-      } catch (err) {
-        console.log(err);
+  try {
+    const res = await fetch(`${API_URL}/follow/${profileUser._id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`
       }
-    }}
+    });
+
+    const data = await res.json();
+
+    setUser(data.currentUser);
+    setProfileUser(data.targetUser);
+
+  } catch (err) {
+    console.log(err);
+  }
+}}
     className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
   >
     {user?.following?.includes(profileUser._id)
@@ -603,41 +609,45 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
                     {post.userId?._id !== user?._id && (
   <button
     onClick={async () => {
-      try {
-        const res = await fetch(`${API_URL}/follow/${post.userId._id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          }
-        });
 
-        const data = await res.json();
+  // 🔥 instant UI update (no lag)
+  setUser(prev => {
+    const isFollowing = prev.following.includes(post.userId._id);
 
-        setUser(prev => ({
-  ...prev,
-  following: data.following
-}));
+    return {
+      ...prev,
+      following: isFollowing
+        ? prev.following.filter(id => id !== post.userId._id)
+        : [...prev.following, post.userId._id]
+    };
+  });
 
-// 🔥 IMPORTANT FIX
-setPosts(prev =>
-  prev.map(p =>
-    p.userId._id === post.userId._id
-      ? {
-          ...p,
-          userId: {
-            ...p.userId,
-            followers: data.followers
-          }
-        }
-      : p
-  )
-);
-
-      } catch (err) {
-        console.log(err);
+  try {
+    const res = await fetch(`${API_URL}/follow/${post.userId._id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
       }
-    }}
+    });
+
+    const data = await res.json();
+
+    // 🔥 sync correct data
+    setUser(data.currentUser);
+
+    setPosts(prev =>
+      prev.map(p =>
+        p.userId._id === data.targetUser._id
+          ? { ...p, userId: data.targetUser }
+          : p
+      )
+    );
+
+  } catch (err) {
+    console.log(err);
+  }
+}}
     className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-bold hover:bg-blue-600 transition"
   >
     {user?.following?.includes(post.userId._id)
@@ -880,6 +890,29 @@ socketRef.current.on("profile_updated", (updatedUser) => {
     )
   );
 });
+// 🔥 FOLLOW REALTIME UPDATE
+socketRef.current.on("follow_updated", ({ currentUser, targetUser }) => {
+
+  // update logged user
+  setUser(prev =>
+    prev && prev._id === currentUser._id ? currentUser : prev
+  );
+
+  // update profile page
+  setProfileUser(prev =>
+    prev && prev._id === targetUser._id ? targetUser : prev
+  );
+
+  // update posts
+  setPosts(prev =>
+    prev.map(post =>
+      post.userId?._id === targetUser._id
+        ? { ...post, userId: targetUser }
+        : post
+    )
+  );
+});
+
 
   return () => socketRef.current.disconnect();
 }, [token, API_URL]); 
