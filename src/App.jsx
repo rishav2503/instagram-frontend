@@ -25,8 +25,8 @@ const retryWithBackoff = async (fn, retries = 5, delay = 1000) => {
 };
 
 const callGemini = async (prompt, imageBase64 = null) => {
-  const model = "gemini-1.5-flash";
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+  const model = "gemini-1.5-flash-latest";
+  const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
   
   const parts = [{ text: prompt }];
   if (imageBase64) {
