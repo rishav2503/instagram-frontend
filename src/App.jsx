@@ -8,8 +8,7 @@ import {
 } from 'lucide-react';
 
 const DEFAULT_API_URL = "https://instagram-backend-hswx.onrender.com";
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_KEY;
-console.log("Gemini Key:", GEMINI_API_KEY);
+
 
 /**
  * GEMINI API UTILS
@@ -23,46 +22,35 @@ const retryWithBackoff = async (fn, retries = 5, delay = 1000) => {
     return retryWithBackoff(fn, retries - 1, delay * 2);
   }
 };
-
-const callGemini = async (prompt, imageBase64 = null) => {
-  const model = "gemini-1.5-flash-latest";
-  const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
-  
-  const parts = [{ text: prompt }];
-  if (imageBase64) {
-    parts.push({
-      inlineData: {
-        mimeType: "image/png",
-        data: imageBase64.split(',')[1] || imageBase64
-      }
+const callGemini = async (prompt, image = null) => {
+  try {
+    const res = await fetch(`${DEFAULT_API_URL}/gemini`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt,
+        image: image ? image.split(",")[1] : null
+      }),
     });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.log("Gemini backend error:", data);
+      throw new Error("Gemini failed");
+    }
+
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+  } catch (err) {
+    console.log("Gemini fetch error:", err);
+    throw err;
   }
-
-  const payload = {
-    contents: [{ parts }]
-  };
-
-  const request = async () => {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    console.log("Gemini error:", data);
-    throw new Error(data?.error?.message || "Gemini failed");
-  }
-
-  return data;
 };
 
-  const result = await retryWithBackoff(request);
-  const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-return text || "No response from Gemini";
-};
+
 
 /**
  * UI HELPER COMPONENTS
