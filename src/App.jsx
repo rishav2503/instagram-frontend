@@ -374,6 +374,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
     const data = await res.json();
 
     setUser(data.currentUser);
+    fetchSuggestedUsers();
     setProfileUser(data.targetUser);
 
   } catch (err) {
@@ -645,7 +646,7 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
 
     // 🔥 sync correct data
     setUser(data.currentUser);
-
+    fetchPosts();
     fetchSuggestedUsers();
     
     setPosts(prev =>
@@ -853,6 +854,7 @@ onKeyDown={(e) => {
 
                   const data = await res.json();
                   setUser(data.currentUser);
+                  fetchSuggestedUsers();
 
                 } catch (err) {
                   console.log(err);
@@ -924,11 +926,21 @@ export default function App() {
   });
 
   socketRef.current.on("new_post", (newPost) => {
-    setPosts(prev => {
-      if (prev.find(p => p._id === newPost._id)) return prev;
-      return [newPost, ...prev];
-    });
+  setPosts(prev => {
+    if (prev.find(p => p._id === newPost._id)) return prev;
+
+    
+    const isFollowing = user?.following?.some(
+      f => (f._id || f) === newPost.userId?._id
+    );
+
+    const isOwnPost = newPost.userId?._id === user?._id;
+
+    if (!isFollowing && !isOwnPost) return prev;
+
+    return [newPost, ...prev];
   });
+});
 
   socketRef.current.on("update-like", (updatedPost) => {
     setPosts(prev =>
@@ -990,7 +1002,9 @@ socketRef.current.on("follow_updated", ({ currentUser, targetUser }) => {
         : post
     )
   );
-  fetchPosts(); 
+  setTimeout(() => {
+  fetchPosts(); // slight delay for consistency
+}, 300); 
 });
 
 
@@ -1025,7 +1039,17 @@ socketRef.current.on("follow_updated", ({ currentUser, targetUser }) => {
       const res = await fetch(`${API_URL}/posts`, { headers: getHeaders(true) });
       if (res.ok) {
         const data = await res.json();
-        setPosts(Array.isArray(data) ? data : []);
+        const filtered = (Array.isArray(data) ? data : []).filter(post => {
+  const isFollowing = user?.following?.some(
+    f => (f._id || f) === post.userId?._id
+  );
+
+  const isOwnPost = post.userId?._id === user?._id;
+
+  return isFollowing || isOwnPost;
+});
+
+setPosts(filtered);
       }
     } catch (err) {
       setError("Failed to load feed.");
