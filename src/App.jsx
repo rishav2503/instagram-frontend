@@ -201,6 +201,27 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   const [pullY, setPullY] = useState(0);
 const [isPulling, setIsPulling] = useState(false);
 const [isRefreshing, setIsRefreshing] = useState(false);
+const handleTouchMove = (e) => {
+  if (!isPulling) return;
+
+  const currentY = e.touches[0].clientY;
+  const diff = currentY - pullY;
+
+  if (diff > 0 && diff < 120) {
+    document.documentElement.style.transform = `translateY(${diff}px)`;
+  }
+};
+
+const handleTouchEnd = async () => {
+  if (!isPulling) return;
+
+  setIsPulling(false);
+  document.documentElement.style.transform = "translateY(0px)";
+
+  setIsRefreshing(true);
+  await fetchPosts();
+  setIsRefreshing(false);
+};
   const [activeAiCommentId, setActiveAiCommentId] = useState(null);
 
 
