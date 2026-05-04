@@ -1029,7 +1029,17 @@ socketRef.current.on("follow_updated", ({ currentUser, targetUser }) => {
       const res = await fetch(`${API_URL}/posts`, { headers: getHeaders(true) });
       if (res.ok) {
         const data = await res.json();
-        setPosts(Array.isArray(data) ? data : []);
+        setPosts(
+  (Array.isArray(data) ? data : []).filter(post => {
+    const isFollowing = user?.following?.some(
+      f => (f._id || f) === post.userId?._id
+    );
+
+    const isOwnPost = post.userId?._id === user?._id;
+
+    return isFollowing || isOwnPost;
+  })
+);
       }
     } catch (err) {
       setError("Failed to load feed.");
