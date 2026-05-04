@@ -188,7 +188,7 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
     </div>
   </div>
 );
-const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handleProfileUpdate, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, API_URL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs}) => {
+const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handleProfileUpdate, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, API_URL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs, showSuggestions, setShowSuggestions, suggestedUsers, setSuggestedUsers}) => {
   console.log("PROFILE USER:", profileUser);
   console.log("POSTS:", posts);
   const [aiLoading, setAiLoading] = useState(false);
@@ -1253,6 +1253,10 @@ const handleProfileUpdate = async (name) => {
           commentInputs={commentInputs}
           setCommentInputs={setCommentInputs}
           handleProfileUpdate={handleProfileUpdate}
+          showSuggestions={showSuggestions}
+          setShowSuggestions={setShowSuggestions}
+          suggestedUsers={suggestedUsers}
+          setSuggestedUsers={setSuggestedUsers}
         />
       )}
       
