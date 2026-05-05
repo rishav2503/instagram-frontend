@@ -188,7 +188,7 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
     </div>
   </div>
 );
-const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handleProfileUpdate, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, API_URL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs, showSuggestions, setShowSuggestions, suggestedUsers, setSuggestedUsers}) => {
+const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handleProfileUpdate, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, API_URL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs, showSuggestions, setShowSuggestions, suggestedUsers, setSuggestedUsers, fetchSuggestedUsers}) => {
   console.log("PROFILE USER:", profileUser);
   console.log("POSTS:", posts);
   const openProfile = (userData) => {
@@ -893,10 +893,11 @@ onKeyDown={(e) => {
 
     // ✅ ONLY trust backend
     setUser(data.currentUser);
-    setProfileUser(data.targetUser);
 
-    // ✅ refresh suggestions only
-    fetchSuggestedUsers();
+// instant UI update (IMPORTANT)
+setSuggestedUsers(prev =>
+  prev.filter(user => user._id !== u._id)
+);
 
   } catch (err) {
     console.log(err);
@@ -1266,6 +1267,7 @@ const handleProfileUpdate = async (name) => {
         />
       ) : (
         <Dashboard 
+          fetchSuggestedUsers={fetchSuggestedUsers}
           user={user}
           setUser={setUser}
           profileUser={profileUser}
