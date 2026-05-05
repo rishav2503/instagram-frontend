@@ -882,7 +882,7 @@ onKeyDown={(e) => {
             <button
               onClick={async () => {
   try {
-    const res = await fetch(`${API_URL}/follow/${id}`, {
+    const res = await fetch(`${API_URL}/follow/${u._id}`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`
