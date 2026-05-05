@@ -894,10 +894,13 @@ onKeyDown={(e) => {
     // ✅ ONLY trust backend
     setUser(data.currentUser);
 
-// instant UI update (IMPORTANT)
+// remove from suggestions
 setSuggestedUsers(prev =>
   prev.filter(user => user._id !== u._id)
 );
+
+// 🔥 VERY IMPORTANT (ADD THIS)
+await fetchPosts();
 
   } catch (err) {
     console.log(err);
@@ -969,7 +972,17 @@ export default function App() {
   });
 
   socketRef.current.on("new_post", (newPost) => {
-  setPosts(prev => [newPost, ...prev]);
+  setPosts(prev => {
+    const isFollowing = user?.following?.some(
+      f => (f._id || f) === newPost.userId?._id
+    );
+
+    const isOwn = newPost.userId?._id === user?._id;
+
+    if (!isFollowing && !isOwn) return prev;
+
+    return [newPost, ...prev];
+  });
 });
 
   socketRef.current.on("update-like", (updatedPost) => {
