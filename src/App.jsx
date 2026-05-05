@@ -881,24 +881,27 @@ onKeyDown={(e) => {
 
             <button
               onClick={async () => {
-                setSuggestedUsers(prev => prev.filter(x => x._id !== u._id));
+  try {
+    const res = await fetch(`${API_URL}/follow/${id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
 
-                try {
-                  const res = await fetch(`${API_URL}/follow/${u._id}`, {
-                    method: "PUT",
-                    headers: {
-                      Authorization: `Bearer ${token}`
-                    }
-                  });
+    const data = await res.json();
 
-                  const data = await res.json();
-                  setUser(data.currentUser);
-                  fetchSuggestedUsers();
+    // ✅ ONLY trust backend
+    setUser(data.currentUser);
+    setProfileUser(data.targetUser);
 
-                } catch (err) {
-                  console.log(err);
-                }
-              }}
+    // ✅ refresh suggestions only
+    fetchSuggestedUsers();
+
+  } catch (err) {
+    console.log(err);
+  }
+}}
               className="px-3 py-1 bg-blue-500 text-white rounded-full text-sm"
             >
               Follow
@@ -965,7 +968,7 @@ export default function App() {
   });
 
   socketRef.current.on("new_post", (newPost) => {
-  console.log("New post received, waiting for refresh...");
+  setPosts(prev => [newPost, ...prev]);
 });
 
   socketRef.current.on("update-like", (updatedPost) => {
@@ -1005,22 +1008,6 @@ socketRef.current.on("profile_updated", (updatedUser) => {
   );
 });
 // 🔥 FOLLOW REALTIME UPDATE
-socketRef.current.on("follow_updated", ({ currentUser, targetUser }) => {
-
-  // update logged user
-  setUser(prev =>
-    prev && prev._id === currentUser._id ? currentUser : prev
-  );
-
-  // update profile page
-  setProfileUser(prev =>
-    prev && prev._id === targetUser._id ? targetUser : prev
-  );
-  if (profileUser?._id === targetUser._id) {
-  setProfileUser(targetUser);
-}
-
-});
 
 
   return () => socketRef.current.disconnect();
