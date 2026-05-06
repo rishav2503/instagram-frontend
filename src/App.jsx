@@ -188,7 +188,7 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
     </div>
   </div>
 );
-const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handleProfileUpdate, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, API_URL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs, showSuggestions, setShowSuggestions, suggestedUsers, setSuggestedUsers, fetchSuggestedUsers}) => {
+const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handleProfileUpdate, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, API_URL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs, showSuggestions, setShowSuggestions, suggestedUsers, setSuggestedUsers, fetchSuggestedUsers, showFollowBox, setShowFollowBox, followType, setFollowType}) => {
   console.log("PROFILE USER:", profileUser);
   console.log("POSTS:", posts);
   const openProfile = (userData) => {
@@ -333,13 +333,25 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   </p>
 
   <div className="flex gap-4 text-sm mt-1">
-    <span>
-      <b>{profileUser?.followers?.length || 0}</b> followers
-    </span>
+    <span
+  onClick={() => {
+    setFollowType("followers");
+    setShowFollowBox(true);
+  }}
+  className="cursor-pointer hover:text-blue-500"
+>
+  <b>{profileUser?.followers?.length || 0}</b> followers
+</span>
 
-    <span>
-      <b>{profileUser?.following?.length || 0}</b> following
-    </span>
+    <span
+  onClick={() => {
+    setFollowType("following");
+    setShowFollowBox(true);
+  }}
+  className="cursor-pointer hover:text-blue-500"
+>
+  <b>{profileUser?.following?.length || 0}</b> following
+</span>
   </div>
 </div>
         <button
@@ -919,6 +931,52 @@ await fetchPosts();
   </div>
 )}
 
+{showFollowBox && (
+  <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+
+    <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl">
+
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="font-bold text-lg capitalize">
+          {followType}
+        </h2>
+
+        <button onClick={() => setShowFollowBox(false)}>
+          <X />
+        </button>
+      </div>
+
+      <div className="space-y-3 max-h-96 overflow-y-auto">
+
+        {(followType === "followers"
+          ? profileUser?.followers
+          : profileUser?.following
+        )?.map((u) => (
+
+          <div
+            key={u._id}
+            className="flex justify-between items-center bg-gray-50 p-3 rounded-xl"
+          >
+
+            <span
+              onClick={() => {
+                setProfileUser(u);
+                setShowFollowBox(false);
+              }}
+              className="font-semibold cursor-pointer hover:text-blue-600"
+            >
+              {u.name}
+            </span>
+
+          </div>
+
+        ))}
+
+      </div>
+    </div>
+  </div>
+)}
+
 <footer className="py-10 text-center opacity-30 select-none flex items-center justify-center gap-4">
   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
 </footer>
@@ -949,6 +1007,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showSettings, setShowSettings] = useState(false);
+  const [showFollowBox, setShowFollowBox] = useState(false);
+  const [followType, setFollowType] = useState("followers");
 
   // Form states
   const [authData, setAuthData] = useState({ name: '', email: '', password: '' });
@@ -1309,6 +1369,10 @@ const handleProfileUpdate = async (name) => {
           setShowSuggestions={setShowSuggestions}
           suggestedUsers={suggestedUsers}
           setSuggestedUsers={setSuggestedUsers}
+          showFollowBox={showFollowBox}
+          setShowFollowBox={setShowFollowBox}
+          followType={followType}
+          setFollowType={setFollowType}
         />
       )}
       
