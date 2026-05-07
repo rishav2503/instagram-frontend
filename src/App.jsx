@@ -281,12 +281,28 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   className="w-10 h-10 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center hover:bg-purple-600 hover:text-white transition-all"
 >
   <UserPlus size={20} />
+  <div className="flex items-center gap-2">
+
+  {/* SUGGESTIONS */}
   <button
-  onClick={() => setShowChatBox(true)}
-  className="w-10 h-10 bg-green-50 text-green-600 rounded-full flex items-center justify-center"
->
-  💬
-</button>
+    onClick={() => setShowSuggestions(true)}
+    className="w-10 h-10 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center hover:bg-purple-600 hover:text-white transition-all"
+  >
+    <UserPlus size={20} />
+  </button>
+
+  {/* CHAT */}
+  <button
+    onClick={() => {
+      setChatUser(null);
+      setShowChatBox(true);
+    }}
+    className="w-10 h-10 bg-green-50 text-green-600 rounded-full flex items-center justify-center hover:bg-green-500 hover:text-white transition-all"
+  >
+    💬
+  </button>
+
+</div>
 </button>
             <button onClick={() => setView('create')} className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all">
               <PlusCircle size={22} />
@@ -427,8 +443,12 @@ setSuggestedUsers(prev => {
 )}
 
 
-{user?.following?.some(f => (f._id || f) === profileUser._id) &&
- profileUser?.following?.some(f => (f._id || f) === user._id) && (
+{user?.following?.some(
+  f => (f._id || f).toString() === profileUser?._id?.toString()
+) &&
+profileUser?.following?.some(
+  f => (f._id || f).toString() === user?._id?.toString()
+) && (
 
 <button
   onClick={async () => {
@@ -888,7 +908,7 @@ onKeyDown={(e) => {
 
       {/* 🔥 SUGGESTED USERS PANEL */}
 {showSuggestions && (
-  <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+  <div className="fixed inset-0 bg-white z-[100] flex flex-col">
 
     <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl">
 
@@ -1003,7 +1023,7 @@ await fetchPosts();
 {showChatBox && (
   <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
 
-    <div className="bg-white w-full max-w-md h-[80vh] rounded-2xl flex flex-col overflow-hidden">
+    <div className="w-full h-full flex flex-col rounded-2xl flex flex-col overflow-hidden">
 
       {/* HEADER */}
       <div className="p-4 border-b flex justify-between items-center">
@@ -1021,11 +1041,13 @@ await fetchPosts();
 
         <div className="p-4 space-y-3 overflow-y-auto">
 
-          {user?.following?.filter(f =>
-            f.followers?.some(
-              x => (x._id || x) === user._id
-            )
-          ).map(u => (
+          {user?.following
+  ?.filter(f =>
+    f.followers?.some(
+      x => (x._id || x).toString() === user?._id?.toString()
+    )
+  )
+  .map(u => (
 
             <div
               key={u._id}
