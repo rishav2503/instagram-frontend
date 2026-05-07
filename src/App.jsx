@@ -188,7 +188,7 @@ const AuthView = ({ view, setView, authData, setAuthData, handleAuth, loading, e
     </div>
   </div>
 );
-const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handleProfileUpdate, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, API_URL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs, showSuggestions, setShowSuggestions, suggestedUsers, setSuggestedUsers, fetchSuggestedUsers, showFollowBox, setShowFollowBox, followType, setFollowType}) => {
+const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handleProfileUpdate, view, setView, posts, fetchPosts, handleCreatePost, handleDeletePost, handleLogout, postData, setPostData, loading, API_URL, handleLike, likedPostId, commentText, setCommentText, handleComment, activePostId, setActivePostId, commentInputs, setCommentInputs, showSuggestions, setShowSuggestions, suggestedUsers, setSuggestedUsers, fetchSuggestedUsers, showFollowBox, setShowFollowBox, followType, setFollowType, showChatBox, setShowChatBox, chatUser, setChatUser, messages, setMessages, messageText, setMessageText, sendMessage,fetchMessages}) => {
   console.log("PROFILE USER:", profileUser);
   console.log("POSTS:", posts);
   const openProfile = (userData) => {
@@ -281,6 +281,12 @@ const Dashboard = ({ user, setUser, token, profileUser, setProfileUser, handlePr
   className="w-10 h-10 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center hover:bg-purple-600 hover:text-white transition-all"
 >
   <UserPlus size={20} />
+  <button
+  onClick={() => setShowChatBox(true)}
+  className="w-10 h-10 bg-green-50 text-green-600 rounded-full flex items-center justify-center"
+>
+  💬
+</button>
 </button>
             <button onClick={() => setView('create')} className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all">
               <PlusCircle size={22} />
@@ -418,6 +424,24 @@ setSuggestedUsers(prev => {
       ? "Unfollow"
       : "Follow"}
   </button>
+)}
+
+
+{user?.following?.some(f => (f._id || f) === profileUser._id) &&
+ profileUser?.following?.some(f => (f._id || f) === user._id) && (
+
+<button
+  onClick={async () => {
+    setChatUser(profileUser);
+    setShowChatBox(true);
+
+    await fetchMessages(profileUser._id);
+  }}
+  className="bg-green-500 text-white px-4 py-2 rounded mb-4 ml-2"
+>
+  Message
+</button>
+
 )}
     {/* POSTS */}
     <h3 className="font-bold mb-3">Posts</h3>
@@ -976,6 +1000,96 @@ await fetchPosts();
     </div>
   </div>
 )}
+{showChatBox && (
+  <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+
+    <div className="bg-white w-full max-w-md h-[80vh] rounded-2xl flex flex-col overflow-hidden">
+
+      {/* HEADER */}
+      <div className="p-4 border-b flex justify-between items-center">
+        <h2 className="font-bold">
+          {chatUser ? chatUser.name : "Messages"}
+        </h2>
+
+        <button onClick={() => setShowChatBox(false)}>
+          <X />
+        </button>
+      </div>
+
+      {/* NO CHAT SELECTED */}
+      {!chatUser ? (
+
+        <div className="p-4 space-y-3 overflow-y-auto">
+
+          {user?.following?.filter(f =>
+            f.followers?.some(
+              x => (x._id || x) === user._id
+            )
+          ).map(u => (
+
+            <div
+              key={u._id}
+              onClick={async () => {
+                setChatUser(u);
+                await fetchMessages(u._id);
+              }}
+              className="p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100"
+            >
+              {u.name}
+            </div>
+
+          ))}
+
+        </div>
+
+      ) : (
+
+        <>
+          {/* MESSAGES */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+
+            {messages.map((m, i) => (
+
+              <div
+                key={i}
+                className={`max-w-[75%] p-3 rounded-2xl text-sm ${
+                  m.sender?._id === user._id
+                    ? "ml-auto bg-blue-500 text-white"
+                    : "bg-gray-100"
+                }`}
+              >
+                {m.text}
+              </div>
+
+            ))}
+
+          </div>
+
+          {/* INPUT */}
+          <div className="p-4 border-t flex gap-2">
+
+            <input
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              placeholder="Type message..."
+              className="border rounded-full px-4 py-2 w-full"
+            />
+
+            <button
+              onClick={sendMessage}
+              className="bg-blue-500 text-white px-4 rounded-full"
+            >
+              Send
+            </button>
+
+          </div>
+        </>
+
+      )}
+
+    </div>
+  </div>
+)}
 
 <footer className="py-10 text-center opacity-30 select-none flex items-center justify-center gap-4">
   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -1009,6 +1123,13 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showFollowBox, setShowFollowBox] = useState(false);
   const [followType, setFollowType] = useState("followers");
+  const [showChatBox, setShowChatBox] = useState(false);
+
+  const [chatUser, setChatUser] = useState(null);
+
+  const [messages, setMessages] = useState([]);
+
+  const [messageText, setMessageText] = useState("");
 
   // Form states
   const [authData, setAuthData] = useState({ name: '', email: '', password: '' });
@@ -1060,6 +1181,16 @@ export default function App() {
   socketRef.current.on("delete_post", (postId) => {
     setPosts(prev => prev.filter(p => p._id !== postId));
   });
+
+  socketRef.current.on("new_message", (message) => {
+
+  if (
+    message.sender?._id === chatUser?._id ||
+    message.receiver?._id === chatUser?._id
+  ) {
+    setMessages(prev => [...prev, message]);
+  }
+});
   // 🔥 PROFILE REAL-TIME UPDATE
 socketRef.current.on("profile_updated", (updatedUser) => {
   // update logged user
@@ -1314,6 +1445,51 @@ const handleProfileUpdate = async (name) => {
     console.log(err);
   }
 };
+
+const fetchMessages = async (userId) => {
+  try {
+    const res = await fetch(`${API_URL}/messages/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const data = await res.json();
+
+    setMessages(data);
+
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const sendMessage = async () => {
+  if (!messageText.trim()) return;
+
+  try {
+    const res = await fetch(`${API_URL}/send-message`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+
+      body: JSON.stringify({
+        receiverId: chatUser._id,
+        text: messageText
+      })
+    });
+
+    const data = await res.json();
+
+    setMessages(prev => [...prev, data]);
+
+    setMessageText("");
+
+  } catch (err) {
+    console.log(err);
+  }
+};
   const handleLogout = () => {
     localStorage.removeItem('token');
     setToken('');
@@ -1373,6 +1549,16 @@ const handleProfileUpdate = async (name) => {
           setShowFollowBox={setShowFollowBox}
           followType={followType}
           setFollowType={setFollowType}
+          showChatBox={showChatBox}
+          setShowChatBox={setShowChatBox}
+          chatUser={chatUser}
+          setChatUser={setChatUser}
+          messages={messages}
+          setMessages={setMessages}
+          messageText={messageText}
+          setMessageText={setMessageText}
+          sendMessage={sendMessage}
+          fetchMessages={fetchMessages}
         />
       )}
       
